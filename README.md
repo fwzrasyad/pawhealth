@@ -1,17 +1,31 @@
-# pawhealth
+# 🐾 PawHealth - Mobile Application
 
-A new Flutter project.
+PawHealth is a cross-platform mobile application built with Flutter that empowers pet owners to proactively manage their pets' health. It features daily routine tracking, veterinary appointment scheduling, secure medical records, and an innovative AI-driven physical symptom scanner.
 
-## Getting Started
+## ✨ Key Features
+* **Firebase Authentication:** Secure user login and registration synced with our central database.
+* **Pet Profiles:** Manage multiple pets with detailed bios, weight tracking, and core stats.
+* **Daily Routine Logs:** Track diet, activity levels, and behavioral changes day-by-day.
+* **Smart AI Analyzer:** Upload images of physical symptoms for instant AI preliminary scanning.
+* **Veterinary Network:** Browse available veterinarians and securely book appointments.
+* **Medical Histories:** Access structured, centralized medical records for each pet.
 
-This project is a starting point for a Flutter application.
+## 🛠 Tech Stack
+* **Framework:** Flutter (Dart)
+* **State Management:** Provider (`ChangeNotifier`)
+* **Authentication:** Firebase Auth
+* **Networking:** `http` package for REST API communication
+* **Environment Management:** `flutter_dotenv`
 
-A few resources to get you started if this is your first Flutter project:
+## 🚀 Local Development Setup
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+### Prerequisites
+* [Flutter SDK](https://docs.flutter.dev/get-started/install) installed.
+* An Android Emulator, iOS Simulator, or physical device connected via USB/Wi-Fi.
+* The `pawhealth-backend` server running locally.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Installation Steps
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/yourusername/pawhealth.git](https://github.com/yourusername/pawhealth.git)
+   cd pawhealth
