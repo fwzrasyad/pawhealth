@@ -23,9 +23,3 @@ PawHealth is a cross-platform mobile application built with Flutter that empower
 * [Flutter SDK](https://docs.flutter.dev/get-started/install) installed.
 * An Android Emulator, iOS Simulator, or physical device connected via USB/Wi-Fi.
 * The `pawhealth-backend` server running locally.
-
-### Installation Steps
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/yourusername/pawhealth.git](https://github.com/yourusername/pawhealth.git)
-   cd pawhealth
