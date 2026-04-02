@@ -1,19 +1,33 @@
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/api_service.dart';
 import '../models/ai_scan_model.dart';
 
 /// Enum to represent which image source the user chose
 enum ImagePickerSource { camera, gallery }
 
 class SmartAnalyzerController extends ChangeNotifier {
+  final ApiService _apiService = ApiService();
+
   String? _selectedImagePath;
   bool _isAnalyzing = false;
   AIScan? _currentScanResult;
-  final List<AIScan> _scanHistory = [];
+  List<AIScan> _scanHistory = [];
+  bool _isLoading = false;
 
   String? get selectedImagePath => _selectedImagePath;
   bool get isAnalyzing => _isAnalyzing;
   AIScan? get currentScanResult => _currentScanResult;
   List<AIScan> get scanHistory => _scanHistory;
+  bool get isLoading => _isLoading;
+
+  // ── Helper: get Firebase ID Token ─────────────────────────────────────────
+
+  Future<String?> _getToken() async {
+    return await FirebaseAuth.instance.currentUser?.getIdToken();
+  }
+
+  // ── Image Picking ─────────────────────────────────────────────────────────
 
   /// Mock image picking – in production this would call image_picker plugin.
   /// Returns true if an image was "selected" (always succeeds in mock).
@@ -32,47 +46,65 @@ class SmartAnalyzerController extends ChangeNotifier {
     return true;
   }
 
-  /// Simulates ML Kit analysis with a 2-second processing delay.
-  Future<void> analyzeImage({String petId = 'pet_1'}) async {
+  // ── Fetch AI Scan History ─────────────────────────────────────────────────
+
+  /// Fetches all past AI scans for a specific pet from the backend.
+  Future<void> fetchAiScans(String petId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/pets/$petId/ai-scans', token: token);
+      final List<dynamic> data = response['data'] ?? response;
+      _scanHistory = data.map((json) => AIScan.fromJson(json)).toList();
+    } catch (e) {
+      print('Error fetching AI scans: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // ── Analyze Image ─────────────────────────────────────────────────────────
+
+  /// Sends the image data to the backend for AI analysis and receives results.
+  Future<void> analyzeImage({required String petId}) async {
     if (_selectedImagePath == null) return;
 
     _isAnalyzing = true;
     notifyListeners();
 
-    // Simulate ML model inference time
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final token = await _getToken();
 
-    // Mock result pool – randomly pick one to feel realistic
-    final mockResults = [
-      {'label': 'Mild Skin Rash', 'confidence': 0.85},
-      {'label': 'Possible Ear Infection', 'confidence': 0.78},
-      {'label': 'Coat Appears Healthy', 'confidence': 0.92},
-      {'label': 'Minor Wound Detected', 'confidence': 0.71},
-      {'label': 'Eye Discharge Observed', 'confidence': 0.80},
-    ];
-    final pick = mockResults[DateTime.now().second % mockResults.length];
+      final response = await _apiService.post('/pets/$petId/ai-scans', {
+        'image_url': _selectedImagePath!,
+        'pet_id': petId,
+      }, token);
 
-    _currentScanResult = AIScan(
-      scanId: 'scan_${DateTime.now().millisecondsSinceEpoch}',
-      petId: petId,
-      scanDate: DateTime.now(),
-      imageUrl: _selectedImagePath!,
-      aiResultLabel: pick['label'] as String,
-      confidenceScore: pick['confidence'] as double,
-    );
+      final scanData = response['data'] ?? response;
+      _currentScanResult = AIScan.fromJson(scanData);
+    } catch (e) {
+      print('Error analyzing image: $e');
+    }
 
     _isAnalyzing = false;
     notifyListeners();
   }
 
-  /// Simulates persisting the scan to the pet's history log.
+  // ── Save Scan to Log ──────────────────────────────────────────────────────
+
+  /// The scan is already persisted by the POST in analyzeImage().
+  /// This method adds it to the local history and returns success.
   Future<bool> saveScanToLog() async {
     if (_currentScanResult == null) return false;
-    await Future.delayed(const Duration(milliseconds: 500));
     _scanHistory.add(_currentScanResult!);
     notifyListeners();
     return true;
   }
+
+  // ── Reset ─────────────────────────────────────────────────────────────────
 
   /// Resets state for a new scan session.
   void resetScan() {

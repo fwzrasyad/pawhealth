@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../controllers/auth_controller.dart';
+import '../../controllers/pet_controller.dart';
 import '../../controllers/appointment_controller.dart';
 import '../../models/appointment_model.dart';
+
+import '../../models/daily_routine_model.dart';
 import '../profile/profile_settings_view.dart';
 import 'pets/my_pets_list_view.dart';
 import 'booking/available_vets_view.dart';
@@ -27,6 +30,18 @@ class _OwnerDashboardViewState extends State<OwnerDashboardView> {
     const MyVisitsView(),
     const SmartAnalyzerIntroView(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = context.read<AuthController>();
+      if (auth.currentUser != null) {
+        context.read<PetController>().fetchPets(auth.currentUser!.userId);
+        context.read<AppointmentController>().fetchAppointments();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -194,12 +209,36 @@ class _DashboardContent extends StatelessWidget {
     return 'Good evening,';
   }
 
+  String _getPetEmoji(String species) {
+    final s = species.toLowerCase();
+    if (s.contains('dog')) return '🐶';
+    if (s.contains('cat')) return '🐱';
+    if (s.contains('bird')) return '🐦';
+    if (s.contains('rabbit')) return '🐰';
+    if (s.contains('fish')) return '🐠';
+    return '🐾';
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
     final apptCtrl = context.watch<AppointmentController>();
+    final petCtrl = context.watch<PetController>();
     final firstName = auth.currentUser?.name.split(' ').first ?? 'there';
     final upcoming = apptCtrl.upcomingVisits;
+    final myPets = petCtrl.pets;
+
+    final allRoutines = <Map<String, dynamic>>[];
+    for (var pet in myPets) {
+      for (var log in pet.dailyRoutines) {
+        allRoutines.add({
+          'petName': pet.name,
+          'log': log,
+        });
+      }
+    }
+    allRoutines.sort((a, b) => (b['log'].date as DateTime).compareTo(a['log'].date as DateTime));
+    final recentRoutines = allRoutines.take(3).toList();
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -354,33 +393,37 @@ class _DashboardContent extends StatelessWidget {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: [
-                  _PetHealthCard(
-                    emoji: '🐱',
-                    name: 'Cola',
-                    species: 'Cat',
-                    status: 'Healthy',
-                    statusColor: const Color(0xFF16A34A),
-                    statusBg: const Color(0xFFDCFCE7),
-                  ),
-                  const SizedBox(width: 12),
-                  _PetHealthCard(
-                    emoji: '🐶',
-                    name: 'Buddy',
-                    species: 'Dog',
-                    status: 'Check-up due',
-                    statusColor: const Color(0xFFB45309),
-                    statusBg: const Color(0xFFFEF3C7),
-                  ),
-                ],
+                children: myPets.isEmpty
+                    ? [
+                        Text(
+                          'No pets added yet.',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            color: Colors.grey.shade500,
+                          ),
+                        )
+                      ]
+                    : myPets.map((pet) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12.0),
+                          child: _PetHealthCard(
+                            emoji: _getPetEmoji(pet.species),
+                            name: pet.name,
+                            species: pet.species,
+                            status: 'Healthy',
+                            statusColor: const Color(0xFF16A34A),
+                            statusBg: const Color(0xFFDCFCE7),
+                          ),
+                        );
+                      }).toList(),
               ),
             ),
 
             const SizedBox(height: 28),
 
-            // ── Today's Routine ─────────────────────────────────────
+            // ── Recent Activity Logs ─────────────────────────────────────
             const Text(
-              "Today's Routine",
+              "Recent Logs",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -389,21 +432,37 @@ class _DashboardContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14),
-            _RoutineItem(
-              icon: Icons.restaurant,
-              title: 'Morning Feeding',
-              subtitle: 'Cola & Buddy',
-              time: '9:00 AM',
-              done: true,
-            ),
-            const SizedBox(height: 10),
-            _RoutineItem(
-              icon: Icons.directions_walk,
-              title: 'Evening Walk',
-              subtitle: 'Buddy',
-              time: '6:00 PM',
-              done: false,
-            ),
+            recentRoutines.isEmpty
+                ? Text(
+                    'No routine logs recently.',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Colors.grey.shade500,
+                    ),
+                  )
+                : Column(
+                    children: recentRoutines.map((r) {
+                      final petName = r['petName'] as String;
+                      final log = r['log'] as DailyRoutineLog;
+                      
+                      IconData getIcon(String act) {
+                        if (act.toLowerCase().contains('high')) return Icons.directions_run;
+                        if (act.toLowerCase().contains('low')) return Icons.bedtime;
+                        return Icons.pets;
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10.0),
+                        child: _RoutineItem(
+                          icon: getIcon(log.activityLevel),
+                          title: '$petName log',
+                          subtitle: 'Activity: ${log.activityLevel} | W: ${log.weight}kg',
+                          time: DateFormat('MMM d').format(log.date),
+                          done: true,
+                        ),
+                      );
+                    }).toList(),
+                  ),
           ],
         ),
       ),

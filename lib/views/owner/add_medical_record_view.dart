@@ -5,7 +5,9 @@ import '../../models/medical_record_model.dart';
 import '../../controllers/medical_record_controller.dart';
 
 class AddMedicalRecordView extends StatefulWidget {
-  const AddMedicalRecordView({super.key});
+  final String petId;
+
+  const AddMedicalRecordView({super.key, required this.petId});
 
   @override
   State<AddMedicalRecordView> createState() => _AddMedicalRecordViewState();
@@ -64,7 +66,7 @@ class _AddMedicalRecordViewState extends State<AddMedicalRecordView> {
 
       final newRecord = MedicalRecord(
         recordId: id,
-        petId: controller.mockPetId,
+        petId: widget.petId,
         vetId: 'vet_owner_added', 
         diagnosis: _diagnosisController.text,
         treatment: _treatmentController.text,
@@ -73,7 +75,7 @@ class _AddMedicalRecordViewState extends State<AddMedicalRecordView> {
         attachmentUrl: _hasAttachment ? 'https://example.com/uploaded_file.pdf' : null,
       );
 
-      controller.addRecord(newRecord);
+      controller.addMedicalRecord(widget.petId, newRecord);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

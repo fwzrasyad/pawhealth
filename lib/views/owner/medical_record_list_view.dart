@@ -6,18 +6,30 @@ import '../../models/pet_model.dart';
 import 'add_medical_record_view.dart';
 import 'medical_record_detail_view.dart';
 
-class MedicalRecordListView extends StatelessWidget {
+class MedicalRecordListView extends StatefulWidget {
   final Pet pet; // Accept the clicked pet
 
   const MedicalRecordListView({super.key, required this.pet});
 
   @override
+  State<MedicalRecordListView> createState() => _MedicalRecordListViewState();
+}
+
+class _MedicalRecordListViewState extends State<MedicalRecordListView> {
+  Pet get pet => widget.pet;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MedicalRecordController>().fetchMedicalRecords(pet.petId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final controller = context.watch<MedicalRecordController>();
-    // In a real app we'd pass pet.id. Here we use the mock pet ID from the controller
-    // or you could use controller.getRecordsByPet(pet.id) if schemas align perfectly.
-    // For now we'll match mock data since Phase 3 requested mock data integration.
-    final records = controller.getRecordsByPet(controller.mockPetId);
+    final records = controller.getRecordsByPet(pet.petId);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -263,7 +275,7 @@ class MedicalRecordListView extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const AddMedicalRecordView(),
+              builder: (_) => AddMedicalRecordView(petId: pet.petId),
             ),
           );
         },

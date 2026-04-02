@@ -4,10 +4,10 @@ import 'package:intl/intl.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/vet_controller.dart';
 import '../../../models/appointment_model.dart';
-import '../auth/login_view.dart';
 import 'manage_appointments_view.dart';
 import 'manage_availability_view.dart';
 import 'vet_patient_record_view.dart';
+import 'vet_profile_view.dart';
 
 class VetDashboardView extends StatefulWidget {
   const VetDashboardView({super.key});
@@ -20,11 +20,23 @@ class _VetDashboardViewState extends State<VetDashboardView> {
   int _selectedIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final vc = context.read<VetController>();
+      vc.fetchAppointments();
+      vc.fetchPatients();
+      vc.fetchMyVetProfile();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screens = [
       const _VetHomeContent(),
       const ManageAppointmentsView(embeddedMode: true),
       const ManageAvailabilityView(embeddedMode: true),
+      const VetProfileView(),
     ];
 
     return Scaffold(
@@ -44,6 +56,7 @@ class _VetDashboardViewState extends State<VetDashboardView> {
                 _NavItem(index: 0, selected: _selectedIndex == 0, icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard, label: 'Dashboard', onTap: () => setState(() => _selectedIndex = 0)),
                 _NavItem(index: 1, selected: _selectedIndex == 1, icon: Icons.event_note_outlined, activeIcon: Icons.event_note, label: 'Requests', onTap: () => setState(() => _selectedIndex = 1)),
                 _NavItem(index: 2, selected: _selectedIndex == 2, icon: Icons.calendar_month_outlined, activeIcon: Icons.calendar_month, label: 'Schedule', onTap: () => setState(() => _selectedIndex = 2)),
+                _NavItem(index: 3, selected: _selectedIndex == 3, icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile', onTap: () => setState(() => _selectedIndex = 3)),
               ],
             ),
           ),
@@ -132,16 +145,10 @@ class _VetHomeContent extends StatelessWidget {
                     ],
                   ),
                 ),
-                GestureDetector(
-                  onTap: () async {
-                    await auth.logout();
-                    if (context.mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginView()));
-                  },
-                  child: Container(
-                    width: 48, height: 48,
-                    decoration: const BoxDecoration(color: _lightPurple, shape: BoxShape.circle),
-                    child: const Icon(Icons.logout, color: _purple, size: 22),
-                  ),
+                Container(
+                  width: 48, height: 48,
+                  decoration: const BoxDecoration(color: _lightPurple, shape: BoxShape.circle),
+                  child: const Icon(Icons.notifications_outlined, color: _purple, size: 22),
                 ),
               ],
             ),

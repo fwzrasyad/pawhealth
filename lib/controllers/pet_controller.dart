@@ -1,8 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/api_service.dart';
 import '../models/pet_model.dart';
 import '../models/daily_routine_model.dart';
 
 class PetController extends ChangeNotifier {
+  final ApiService _apiService = ApiService();
+
   List<Pet> _pets = [];
   Pet? _selectedPet;
   bool _isLoading = false;
@@ -10,6 +14,12 @@ class PetController extends ChangeNotifier {
   List<Pet> get pets => _pets;
   Pet? get selectedPet => _selectedPet;
   bool get isLoading => _isLoading;
+
+  // ── Helper: get Firebase ID Token ─────────────────────────────────────────
+
+  Future<String?> _getToken() async {
+    return await FirebaseAuth.instance.currentUser?.getIdToken();
+  }
 
   void selectPet(Pet pet) {
     _selectedPet = pet;
@@ -21,102 +31,107 @@ class PetController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fetch pets (mock data including the black cat Cola)
+  // ── Fetch Pets ────────────────────────────────────────────────────────────
+
+  /// Fetches all pets for the currently authenticated user from the backend.
   Future<void> fetchPets(String ownerId) async {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 1));
-
-    _pets = [
-      Pet(
-        petId: 'pet_1',
-        ownerId: ownerId,
-        name: 'Buddy',
-        species: 'Dog',
-        breed: 'Golden Retriever',
-        age: 3,
-        gender: 'Male',
-        weight: 29.5,
-        dailyRoutines: [
-          DailyRoutineLog(
-            id: 'log_1',
-            petId: 'pet_1',
-            date: DateTime.now().subtract(const Duration(days: 1)),
-            weight: 29.5,
-            dietNotes: 'Ate normal portions. Dry food.',
-            activityLevel: 'High Activity',
-          )
-        ],
-      ),
-      Pet(
-        petId: 'pet_2',
-        ownerId: ownerId,
-        name: 'Cola',
-        species: 'Cat',
-        breed: 'Domestic Shorthair (Black)',
-        age: 1,
-        gender: 'Female',
-        weight: 4.8,
-        dailyRoutines: [
-          DailyRoutineLog(
-            id: 'log_2',
-            petId: 'pet_2',
-            date: DateTime.now().subtract(const Duration(days: 2)),
-            weight: 4.8,
-            dietNotes: 'Wet food morning and evening. Good appetite.',
-            activityLevel: 'Moderate',
-          )
-        ],
-      ),
-    ];
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/pets', token: token);
+      final List<dynamic> data = response['data'] ?? response;
+      _pets = data.map((json) => Pet.fromJson(json)).toList();
+    } catch (e) {
+      debugPrint('Error fetching pets: $e');
+    }
 
     _isLoading = false;
     notifyListeners();
   }
 
-  /// Add a new pet
+  // ── Add Pet ───────────────────────────────────────────────────────────────
+
+  /// Creates a new pet via the backend API.
   Future<void> addPet(Pet newPet) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 500));
-    _pets.add(newPet);
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post('/pets', newPet.toJson(), token);
+      final created = Pet.fromJson(response['data'] ?? response);
+      _pets.add(created);
+    } catch (e) {
+      debugPrint('Error adding pet: $e');
+    }
+
     _isLoading = false;
     notifyListeners();
   }
 
-  /// Update an existing pet
+  // ── Update Pet ────────────────────────────────────────────────────────────
+
+  /// Updates an existing pet via the backend API.
   Future<void> updatePet(Pet updatedPet) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 500));
-    final index = _pets.indexWhere((p) => p.petId == updatedPet.petId);
-    if (index != -1) {
-      _pets[index] = updatedPet;
-      // Keep selectedPet in sync
-      if (_selectedPet?.petId == updatedPet.petId) {
-        _selectedPet = updatedPet;
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.put(
+        '/pets/${updatedPet.petId}',
+        updatedPet.toJson(),
+        token,
+      );
+      final updated = Pet.fromJson(response['data'] ?? response);
+
+      final index = _pets.indexWhere((p) => p.petId == updated.petId);
+      if (index != -1) {
+        _pets[index] = updated;
+        if (_selectedPet?.petId == updated.petId) {
+          _selectedPet = updated;
+        }
       }
+    } catch (e) {
+      debugPrint('Error updating pet: $e');
     }
+
     _isLoading = false;
     notifyListeners();
   }
 
-  /// Add a daily routine log to a specific pet
+  // ── Add Daily Routine Log ─────────────────────────────────────────────────
+
+  /// Adds a daily routine log for a specific pet via the backend API.
   Future<void> addDailyRoutineLog(String petId, DailyRoutineLog log) async {
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 500));
 
-    final index = _pets.indexWhere((p) => p.petId == petId);
-    if (index != -1) {
-      final updatedRoutines = List<DailyRoutineLog>.from(_pets[index].dailyRoutines)..add(log);
-      final updatedPet = _pets[index].copyWith(
-        dailyRoutines: updatedRoutines,
-        weight: log.weight,
+    try {
+      final token = await _getToken();
+      await _apiService.post(
+        '/pets/$petId/daily-routines',
+        log.toJson(),
+        token,
       );
-      _pets[index] = updatedPet;
-      if (_selectedPet?.petId == petId) _selectedPet = updatedPet;
+
+      // Update local state to reflect the new log
+      final index = _pets.indexWhere((p) => p.petId == petId);
+      if (index != -1) {
+        final updatedRoutines = List<DailyRoutineLog>.from(
+          _pets[index].dailyRoutines,
+        )..add(log);
+        final updatedPet = _pets[index].copyWith(
+          dailyRoutines: updatedRoutines,
+          weight: log.weight,
+        );
+        _pets[index] = updatedPet;
+        if (_selectedPet?.petId == petId) _selectedPet = updatedPet;
+      }
+    } catch (e) {
+      debugPrint('Error adding daily routine log: $e');
     }
 
     _isLoading = false;

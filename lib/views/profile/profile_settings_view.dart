@@ -203,7 +203,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                           ),
                           Switch(
                             value: _notificationsEnabled,
-                            activeColor: _purple,
+                            activeThumbColor: _purple,
                             onChanged: (v) =>
                                 setState(() => _notificationsEnabled = v),
                           ),

@@ -2,15 +2,18 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import '../models/user_model.dart';
 import '../services/firebase_auth_service.dart';
+import '../services/api_service.dart';
+import 'vet_controller.dart';
 
 /// AuthController manages all authentication state for the app.
 ///
-/// It consumes [FirebaseAuthService] (raw Firebase calls) and exposes
-/// clean, UI-friendly state to every widget via [ChangeNotifier].
+/// It consumes [FirebaseAuthService] (raw Firebase calls) and [ApiService]
+/// (Laravel backend sync), exposing clean, UI-friendly state via [ChangeNotifier].
 class AuthController extends ChangeNotifier {
   // ── Dependencies ─────────────────────────────────────────────────────────
 
   final FirebaseAuthService _authService;
+  final ApiService _apiService = ApiService();
 
   // ── State ─────────────────────────────────────────────────────────────────
 
@@ -46,47 +49,76 @@ class AuthController extends ChangeNotifier {
 
   // ── Auth-state listener ───────────────────────────────────────────────────
 
-  void _onAuthStateChanged(firebase.User? firebaseUser) {
+  void _onAuthStateChanged(firebase.User? firebaseUser) async {
     if (firebaseUser == null) {
       _currentUser = null;
-    } else {
-      // Rebuild the local User from Firebase state.
-      // _currentUser is preserved if it already exists (has richer data like
-      // the role set after a successful login/register call).
-      _currentUser ??= _userFromFirebase(firebaseUser);
+    } else if (_currentUser == null) {
+      // On app restart / hot-reload, re-sync with the backend to get the
+      // authoritative user record (including role).
+      try {
+        final token = await firebaseUser.getIdToken();
+        final response = await _apiService.post('/auth/sync', {
+          'name': firebaseUser.displayName ?? '',
+          'email': firebaseUser.email ?? '',
+        }, token);
+
+        final userData = response['data'] ?? response;
+        _currentUser = User.fromJson(userData);
+      } catch (e) {
+        // Fallback: build a minimal local user so the app isn't stuck.
+        _currentUser = User(
+          userId: firebaseUser.uid,
+          name: firebaseUser.displayName ?? 'User',
+          email: firebaseUser.email ?? '',
+          password: '',
+          role: UserRole.owner,
+          phoneNumber: firebaseUser.phoneNumber ?? '',
+        );
+        print('Auth sync on state change failed: $e');
+      }
     }
 
     _isInitializing = false; // First event received — AuthWrapper can proceed.
     notifyListeners();
   }
 
+  // ── Helper: get Firebase ID Token ─────────────────────────────────────────
+
+  Future<String?> _getToken() async {
+    return await firebase.FirebaseAuth.instance.currentUser?.getIdToken();
+  }
+
   // ── Public methods ────────────────────────────────────────────────────────
 
   /// Signs in with [email] and [password].
   ///
+  /// After Firebase authentication succeeds, POSTs to `/auth/sync` so the
+  /// Laravel backend creates or updates the MySQL user record.
   /// Returns the authenticated [UserRole] on success, or `null` on failure.
-  /// Check [errorMessage] for a UI-ready failure reason.
   Future<UserRole?> login(String email, String password) async {
     _setLoading(true);
 
     final result = await _authService.signIn(email: email, password: password);
 
     if (result is AuthSuccess) {
-      // TODO(phase-12): Fetch the user's Role from the Laravel API using
-      //   result.user.uid as the identifier. Replace the inline inference below.
-      final role = _inferRole(result.user.email);
+      try {
+        final token = await result.user.getIdToken();
 
-      _currentUser = User(
-        userId: result.user.uid,
-        name: result.user.displayName ?? (role == UserRole.vet ? 'Dr. Vet' : 'Owner'),
-        email: result.user.email ?? email,
-        password: '',
-        role: role,
-        phoneNumber: result.user.phoneNumber ?? '',
-      );
+        // Sync with Laravel backend
+        final response = await _apiService.post('/auth/sync', {
+          'name': result.user.displayName ?? '',
+          'email': result.user.email ?? email,
+        }, token);
 
-      _setLoading(false);
-      return role;
+        final userData = response['data'] ?? response;
+        _currentUser = User.fromJson(userData);
+
+        _setLoading(false);
+        return _currentUser!.role;
+      } catch (e) {
+        _errorMessage = 'Signed in but failed to sync with server: $e';
+        print('Auth sync error on login: $e');
+      }
     } else if (result is AuthFailure) {
       _errorMessage = result.message;
     }
@@ -95,13 +127,18 @@ class AuthController extends ChangeNotifier {
     return null;
   }
 
-  /// Creates a new account, then stores user data in local state.
+  /// Creates a new account, then syncs user data with the Laravel backend.
+  /// If the role is [UserRole.vet], also creates a veterinarian profile.
+  ///
+  /// Accepts an optional [vetController] so the caller (RegisterView) can
+  /// pass in the VetController from the widget tree.
   Future<UserRole?> register({
     required String name,
     required String email,
     required String password,
     required String phoneNumber,
     required UserRole role,
+    VetController? vetController,
   }) async {
     _setLoading(true);
 
@@ -111,21 +148,31 @@ class AuthController extends ChangeNotifier {
       // Update Firebase profile with the display name (best-effort).
       await _authService.updateDisplayName(name);
 
-      // TODO(phase-12): POST to the Laravel API to persist the new user's
-      //   { name, phone_number, role } in the MySQL database. Use
-      //   result.user.uid as the Firebase UID foreign key.
+      try {
+        final token = await result.user.getIdToken();
 
-      _currentUser = User(
-        userId: result.user.uid,
-        name: name.trim(),
-        email: result.user.email ?? email,
-        password: '',
-        role: role,
-        phoneNumber: phoneNumber.trim(),
-      );
+        // POST to Laravel to persist the new user in MySQL
+        final response = await _apiService.post('/auth/sync', {
+          'name': name.trim(),
+          'email': result.user.email ?? email,
+          'role': role.name,
+          'phone_number': phoneNumber.trim(),
+        }, token);
 
-      _setLoading(false);
-      return role;
+        final userData = response['data'] ?? response;
+        _currentUser = User.fromJson(userData);
+
+        // If registering as vet, also create the veterinarian profile
+        if (role == UserRole.vet && vetController != null) {
+          await vetController.createVetProfile(name: name.trim());
+        }
+
+        _setLoading(false);
+        return _currentUser!.role;
+      } catch (e) {
+        _errorMessage = 'Account created but failed to sync with server: $e';
+        debugPrint('Auth sync error on register: $e');
+      }
     } else if (result is AuthFailure) {
       _errorMessage = result.message;
     }
@@ -144,16 +191,16 @@ class AuthController extends ChangeNotifier {
     try {
       await _authService.updateDisplayName(name);
 
-      // TODO(phase-12): PATCH the Laravel API to update name/phone in MySQL.
+      final token = await _getToken();
 
-      _currentUser = User(
-        userId: _currentUser!.userId,
-        name: name.trim(),
-        email: _currentUser!.email,
-        password: _currentUser!.password,
-        role: _currentUser!.role,
-        phoneNumber: phone.trim(),
-      );
+      // Sync updated profile to Laravel
+      final response = await _apiService.put('/auth/profile', {
+        'name': name.trim(),
+        'phone_number': phone.trim(),
+      }, token);
+
+      final userData = response['data'] ?? response;
+      _currentUser = User.fromJson(userData);
       _profileUpdated = true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -189,27 +236,5 @@ class AuthController extends ChangeNotifier {
     _isLoading = value;
     if (value) _errorMessage = null; // Clear stale errors on new requests.
     notifyListeners();
-  }
-
-  /// Builds a local [User] from a Firebase [firebase.User].
-  User _userFromFirebase(firebase.User fbUser) {
-    final role = _inferRole(fbUser.email);
-    return User(
-      userId: fbUser.uid,
-      name: fbUser.displayName ?? (role == UserRole.vet ? 'Dr. Vet' : 'Owner'),
-      email: fbUser.email ?? '',
-      password: '',
-      role: role,
-      phoneNumber: fbUser.phoneNumber ?? '',
-    );
-  }
-
-  /// Temporary role inference from email.
-  ///
-  /// TODO(phase-12): Remove this and fetch the actual role from the Laravel API.
-  UserRole _inferRole(String? email) {
-    return email?.toLowerCase().contains('vet') == true
-        ? UserRole.vet
-        : UserRole.owner;
   }
 }

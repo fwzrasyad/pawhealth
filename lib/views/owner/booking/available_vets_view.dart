@@ -4,14 +4,27 @@ import '../../../controllers/appointment_controller.dart';
 import '../../../models/veterinarian_model.dart';
 import 'vet_booking_detail_view.dart';
 
-class AvailableVetsView extends StatelessWidget {
+class AvailableVetsView extends StatefulWidget {
   const AvailableVetsView({super.key});
 
+  @override
+  State<AvailableVetsView> createState() => _AvailableVetsViewState();
+}
+
+class _AvailableVetsViewState extends State<AvailableVetsView> {
   static const _purple = Color(0xFF8A2BE2);
 
   String _emojiForVet(String id) {
     const map = {'vet_001': '👨‍⚕️', 'vet_002': '🩺', 'vet_003': '🔬', 'vet_004': '🌿'};
     return map[id] ?? '⚕️';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppointmentController>().fetchVeterinarians();
+    });
   }
 
   @override

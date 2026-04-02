@@ -5,10 +5,23 @@ import '../../../controllers/appointment_controller.dart';
 import '../../../models/appointment_model.dart';
 import 'visit_detail_view.dart';
 
-class MyVisitsView extends StatelessWidget {
+class MyVisitsView extends StatefulWidget {
   const MyVisitsView({super.key});
 
+  @override
+  State<MyVisitsView> createState() => _MyVisitsViewState();
+}
+
+class _MyVisitsViewState extends State<MyVisitsView> {
   static const _purple = Color(0xFF8A2BE2);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AppointmentController>().fetchAppointments();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

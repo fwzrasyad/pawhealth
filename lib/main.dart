@@ -10,8 +10,11 @@ import 'controllers/smart_analyzer_controller.dart';
 import 'controllers/vet_controller.dart';
 import 'views/auth/auth_wrapper.dart'; // ← Centralized auth+routing widget
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

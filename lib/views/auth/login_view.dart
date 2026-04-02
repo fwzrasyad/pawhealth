@@ -84,8 +84,10 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    // AuthWrapper watches AuthController and navigates automatically on success.
-    await context.read<AuthController>().login(_emailCtrl.text, _passCtrl.text);
+    final role = await context.read<AuthController>().login(_emailCtrl.text, _passCtrl.text);
+    if (role != null && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   @override

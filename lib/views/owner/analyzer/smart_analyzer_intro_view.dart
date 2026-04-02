@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/smart_analyzer_controller.dart';
+import '../../../controllers/pet_controller.dart';
 import 'analyzing_loading_view.dart';
 
 class SmartAnalyzerIntroView extends StatelessWidget {
@@ -11,6 +12,12 @@ class SmartAnalyzerIntroView extends StatelessWidget {
 
   void _onPickImage(BuildContext context, ImagePickerSource source) async {
     final controller = context.read<SmartAnalyzerController>();
+    final petCtrl = context.read<PetController>();
+    
+    // Choose the selected pet, or fallback to the first available pet
+    final petId = petCtrl.selectedPet?.petId ?? 
+        (petCtrl.pets.isNotEmpty ? petCtrl.pets.first.petId : 'default_pet');
+
     controller.resetScan();
     final picked = await controller.pickImage(source);
     if (picked && context.mounted) {
@@ -19,7 +26,7 @@ class SmartAnalyzerIntroView extends StatelessWidget {
         MaterialPageRoute(builder: (_) => const AnalyzingLoadingView()),
       );
       // Kick off analysis
-      await controller.analyzeImage();
+      await controller.analyzeImage(petId: petId);
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
+import '../../controllers/vet_controller.dart';
 import '../../models/user_model.dart';
 
 class RegisterView extends StatefulWidget {
@@ -90,14 +91,19 @@ class _RegisterViewState extends State<RegisterView> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    // AuthWrapper watches AuthController and navigates automatically on success.
-    await context.read<AuthController>().register(
+    final role = await context.read<AuthController>().register(
       name: _nameCtrl.text,
       email: _emailCtrl.text,
       password: _passCtrl.text,
       phoneNumber: _phoneCtrl.text,
       role: _selectedRole,
+      vetController: _selectedRole == UserRole.vet
+          ? context.read<VetController>()
+          : null,
     );
+    if (role != null && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   @override

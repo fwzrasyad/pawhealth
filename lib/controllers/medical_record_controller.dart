@@ -1,51 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/api_service.dart';
 import '../models/medical_record_model.dart';
 
 class MedicalRecordController extends ChangeNotifier {
-  final String _mockPetId = 'pet_123';
-  
-  final List<MedicalRecord> _records = [
-    MedicalRecord(
-      recordId: 'rec_001',
-      petId: 'pet_123',
-      vetId: 'vet_001',
-      diagnosis: 'Annual Physical Examination',
-      treatment: 'General checkup, healthy. Found minor tartar build-up.',
-      vaccinationDate: DateTime.now().subtract(const Duration(days: 100)),
-      nextDueDate: DateTime.now().add(const Duration(days: 265)),
-      attachmentUrl: 'https://example.com/report1.pdf',
-    ),
-    MedicalRecord(
-      recordId: 'rec_002',
-      petId: 'pet_123',
-      vetId: 'vet_001',
-      diagnosis: 'Rabies Vaccination',
-      treatment: 'Administered 1 dose of Rabies vaccine.',
-      vaccinationDate: DateTime.now().subtract(const Duration(days: 350)),
-      nextDueDate: DateTime.now().add(const Duration(days: 15)), // Highlighting due soon
-    ),
-    MedicalRecord(
-      recordId: 'rec_003',
-      petId: 'pet_123',
-      vetId: 'vet_002',
-      diagnosis: 'Allergic Reaction',
-      treatment: 'Prescribed antihistamines for mild skin allergy.',
-      vaccinationDate: null,
-      nextDueDate: null,
-    ),
-  ];
+  final ApiService _apiService = ApiService();
+
+  List<MedicalRecord> _records = [];
+  bool _isLoading = false;
 
   List<MedicalRecord> get records => _records;
-  
-  // Get records for a specific pet
+  bool get isLoading => _isLoading;
+
+  // ── Helper: get Firebase ID Token ─────────────────────────────────────────
+
+  Future<String?> _getToken() async {
+    return await FirebaseAuth.instance.currentUser?.getIdToken();
+  }
+
+  // ── Fetch Medical Records ─────────────────────────────────────────────────
+
+  /// Fetches all medical records for a specific pet from the backend.
+  Future<void> fetchMedicalRecords(String petId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/pets/$petId/medical-records', token: token);
+      final List<dynamic> data = response['data'] ?? response;
+      _records = data.map((json) => MedicalRecord.fromJson(json)).toList();
+    } catch (e) {
+      print('Error fetching medical records: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // ── Add Medical Record ────────────────────────────────────────────────────
+
+  /// Creates a new medical record via the backend.
+  Future<void> addMedicalRecord(String petId, MedicalRecord record) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post(
+        '/medical-records',
+        record.toJson(),
+        token,
+      );
+
+      final created = MedicalRecord.fromJson(response['data'] ?? response);
+      _records.insert(0, created); // Add to top of list
+    } catch (e) {
+      print('Error adding medical record: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // ── Get Records by Pet (local filter) ─────────────────────────────────────
+
+  /// Filters the locally cached records by pet ID.
   List<MedicalRecord> getRecordsByPet(String petId) {
     return _records.where((record) => record.petId == petId).toList();
   }
-
-  void addRecord(MedicalRecord record) {
-    _records.insert(0, record); // Add to top of list
-    notifyListeners();
-  }
-  
-  String get mockPetId => _mockPetId;
 }

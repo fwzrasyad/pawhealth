@@ -358,12 +358,54 @@ class _VetBookingDetailViewState extends State<VetBookingDetailView> {
       );
     }
 
-    // Mock time slots for the selected date
-    final generatedSlots = [
-      '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM'
-    ];
-    
-    // We'll mock '2:00 PM' as unavailable just to demonstrate the greyed out state
+    // Get the day name for the selected date
+    final dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final dayOfWeek = controller.selectedDate!.weekday; // 1=Mon, 7=Sun
+    final dayName = dayNames[dayOfWeek - 1];
+
+    // Get available slots from the vet's weekly schedule
+    final availableSlots24 = vet.slotsForDay(dayName);
+
+    if (availableSlots24.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.event_busy, size: 32, color: Colors.grey.shade400),
+            const SizedBox(height: 8),
+            Text(
+              'No available slots on ${dayName}s',
+              style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade500, fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Convert 24h time strings to display format and DateTime objects
+    final slotEntries = availableSlots24.map((time24) {
+      final parts = time24.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final suffix = hour >= 12 ? 'PM' : 'AM';
+      final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+      final displayStr = '$displayHour:${parts[1]} $suffix';
+
+      final slotDate = DateTime(
+        controller.selectedDate!.year,
+        controller.selectedDate!.month,
+        controller.selectedDate!.day,
+        hour,
+        minute,
+      );
+
+      return MapEntry(displayStr, slotDate);
+    }).toList();
+
     return GridView.builder(
       padding: EdgeInsets.zero,
       shrinkWrap: true,
@@ -374,52 +416,29 @@ class _VetBookingDetailViewState extends State<VetBookingDetailView> {
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-      itemCount: generatedSlots.length,
+      itemCount: slotEntries.length,
       itemBuilder: (context, index) {
-        final timeStr = generatedSlots[index];
-        final isUnavailable = timeStr == '2:00 PM'; 
-        
-        // Quick parse for mock slot DateTimes
-        final parts = timeStr.split(' ');
-        final timeParts = parts[0].split(':');
-        int hour = int.parse(timeParts[0]);
-        if (parts[1] == 'PM' && hour != 12) hour += 12;
-        if (parts[1] == 'AM' && hour == 12) hour = 0;
-        
-        final slotDate = DateTime(
-          controller.selectedDate!.year,
-          controller.selectedDate!.month,
-          controller.selectedDate!.day,
-          hour,
-          int.parse(timeParts[1]),
-        );
-
+        final entry = slotEntries[index];
+        final timeStr = entry.key;
+        final slotDate = entry.value;
         final isSelected = controller.selectedTimeSlot == slotDate;
 
         return GestureDetector(
-          onTap: isUnavailable ? null : () => controller.selectTimeSlot(slotDate),
+          onTap: () => controller.selectTimeSlot(slotDate),
           child: Container(
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: isSelected ? primaryPurple : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isUnavailable 
-                    ? Colors.grey.shade300 
-                    : isSelected 
-                        ? primaryPurple 
-                        : primaryPurple.withValues(alpha: 0.5),
+                color: isSelected ? primaryPurple : primaryPurple.withValues(alpha: 0.5),
                 width: 1.5,
               ),
             ),
             child: Text(
               timeStr,
               style: TextStyle(
-                color: isUnavailable 
-                    ? Colors.grey.shade400 
-                    : isSelected 
-                        ? Colors.white 
-                        : primaryPurple,
+                color: isSelected ? Colors.white : primaryPurple,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 fontFamily: 'Poppins',

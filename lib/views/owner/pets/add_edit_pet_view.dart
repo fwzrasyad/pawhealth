@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../controllers/auth_controller.dart';
 import '../../../controllers/pet_controller.dart';
 import '../../../models/pet_model.dart';
 
@@ -81,12 +82,14 @@ class _AddEditPetViewState extends State<AddEditPetView> {
 
     setState(() => _isSaving = true);
     final controller = context.read<PetController>();
+    final auth = context.read<AuthController>();
+    final userId = auth.currentUser?.userId ?? '';
 
     final pet = Pet(
       petId: _isEditing
           ? widget.petToEdit!.petId
           : 'pet_${DateTime.now().millisecondsSinceEpoch}',
-      ownerId: 'owner_1',
+      ownerId: userId,
       name: _nameController.text.trim(),
       species: _selectedSpecies!,
       breed: _breedController.text.trim(),
@@ -159,7 +162,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
                         shape: BoxShape.circle,
                       ),
                       child: Center(
-                        child: Icon(Icons.pets, size: 50, color: _purple.withOpacity(0.6)),
+                        child: Icon(Icons.pets, size: 50, color: _purple.withValues(alpha: 0.6)),
                       ),
                     ),
                     Container(
