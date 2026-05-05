@@ -8,18 +8,16 @@ import 'controllers/medical_record_controller.dart';
 import 'controllers/appointment_controller.dart';
 import 'controllers/smart_analyzer_controller.dart';
 import 'controllers/vet_controller.dart';
-import 'views/auth/auth_wrapper.dart'; // ← Centralized auth+routing widget
+import 'views/auth/auth_wrapper.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
-    // App-wide State Management configuration
+    // state management config
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),

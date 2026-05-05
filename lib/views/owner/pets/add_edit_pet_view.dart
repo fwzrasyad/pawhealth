@@ -150,33 +150,76 @@ class _AddEditPetViewState extends State<AddEditPetView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Photo upload placeholder
-              Center(
-                child: Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    Container(
-                      width: 110,
-                      height: 110,
-                      decoration: const BoxDecoration(
-                        color: _lightPurple,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Icon(Icons.pets, size: 50, color: _purple.withValues(alpha: 0.6)),
-                      ),
+              Consumer<PetController>(
+                builder: (context, controller, child) {
+                  final currentPet = _isEditing 
+                      ? controller.pets.firstWhere(
+                          (p) => p.petId == widget.petToEdit!.petId, 
+                          orElse: () => widget.petToEdit!) 
+                      : null;
+                  final imageUrl = currentPet?.profileImageUrl;
+
+                  return Center(
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          width: 110,
+                          height: 110,
+                          decoration: const BoxDecoration(
+                            color: _lightPurple,
+                            shape: BoxShape.circle,
+                          ),
+                          clipBehavior: Clip.hardEdge,
+                          child: (imageUrl != null && imageUrl.isNotEmpty)
+                              ? Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(child: CircularProgressIndicator());
+                                  },
+                                  errorBuilder: (context, error, stackTrace) => const Center(
+                                    child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                                  ),
+                                )
+                              : Center(
+                                  child: Icon(Icons.pets, size: 50, color: _purple.withValues(alpha: 0.6)),
+                                ),
+                        ),
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: _purple,
+                            shape: BoxShape.circle,
+                          ),
+                          child: IconButton(
+                            icon: controller.isLoading
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                            onPressed: (controller.isLoading)
+                                ? null
+                                : () async {
+                                    if (!_isEditing) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Please save the pet profile first before uploading a picture!', style: TextStyle(fontFamily: 'Poppins')),
+                                          backgroundColor: _purple,
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    await controller.uploadProfilePicture(widget.petToEdit!.petId);
+                                  },
+                          ),
+                        ),
+                      ],
                     ),
-                    Container(
-                      decoration: const BoxDecoration(
-                        color: _purple,
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
-                        onPressed: () {},
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 8),
               const Center(

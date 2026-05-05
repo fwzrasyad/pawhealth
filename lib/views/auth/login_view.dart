@@ -47,10 +47,15 @@ class _LoginViewState extends State<LoginView> {
     if (ctrl.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(ctrl.errorMessage!, style: const TextStyle(fontFamily: 'Poppins')),
+          content: Text(
+            ctrl.errorMessage!,
+            style: const TextStyle(fontFamily: 'Poppins'),
+          ),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           margin: const EdgeInsets.all(16),
           duration: const Duration(seconds: 4),
         ),
@@ -63,7 +68,9 @@ class _LoginViewState extends State<LoginView> {
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(fontFamily: 'Poppins', color: Colors.grey),
-      prefixIcon: icon != null ? Icon(icon, color: Colors.grey, size: 20) : null,
+      prefixIcon: icon != null
+          ? Icon(icon, color: Colors.grey, size: 20)
+          : null,
       suffixIcon: suffix,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -84,7 +91,10 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-    final role = await context.read<AuthController>().login(_emailCtrl.text, _passCtrl.text);
+    final role = await context.read<AuthController>().login(
+      _emailCtrl.text,
+      _passCtrl.text,
+    );
     if (role != null && mounted) {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
@@ -131,7 +141,11 @@ class _LoginViewState extends State<LoginView> {
                 const SizedBox(height: 6),
                 Text(
                   'Your pet\'s health companion',
-                  style: TextStyle(fontSize: 14, fontFamily: 'Poppins', color: Colors.grey.shade500),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontFamily: 'Poppins',
+                    color: Colors.grey.shade500,
+                  ),
                 ),
 
                 const SizedBox(height: 48),
@@ -141,9 +155,13 @@ class _LoginViewState extends State<LoginView> {
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(fontFamily: 'Poppins'),
-                  decoration: _fieldDeco('Email Address', icon: Icons.email_outlined),
+                  decoration: _fieldDeco(
+                    'Email Address',
+                    icon: Icons.email_outlined,
+                  ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Please enter your email';
+                    if (v == null || v.isEmpty)
+                      return 'Please enter your email';
                     if (!v.contains('@')) return 'Enter a valid email';
                     return null;
                   },
@@ -160,16 +178,21 @@ class _LoginViewState extends State<LoginView> {
                     icon: Icons.lock_outline,
                     suffix: IconButton(
                       icon: Icon(
-                        _obscurePass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        _obscurePass
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
                         color: Colors.grey,
                         size: 20,
                       ),
-                      onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                      onPressed: () =>
+                          setState(() => _obscurePass = !_obscurePass),
                     ),
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Please enter your password';
-                    if (v.length < 6) return 'Password must be at least 6 characters';
+                    if (v == null || v.isEmpty)
+                      return 'Please enter your password';
+                    if (v.length < 6)
+                      return 'Password must be at least 6 characters';
                     return null;
                   },
                 ),
@@ -181,7 +204,12 @@ class _LoginViewState extends State<LoginView> {
                     onPressed: () {},
                     child: const Text(
                       'Forgot Password?',
-                      style: TextStyle(color: _purple, fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 13),
+                      style: TextStyle(
+                        color: _purple,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ),
@@ -196,14 +224,28 @@ class _LoginViewState extends State<LoginView> {
                       backgroundColor: _purple,
                       disabledBackgroundColor: _purple.withValues(alpha: 0.5),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       elevation: 0,
                     ),
                     child: isLoading
-                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Text(
                             'Login',
-                            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
                           ),
                   ),
                 ),
@@ -215,7 +257,13 @@ class _LoginViewState extends State<LoginView> {
                     Expanded(child: Divider(color: Colors.grey.shade300)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('or', style: TextStyle(color: Colors.grey.shade400, fontFamily: 'Poppins')),
+                      child: Text(
+                        'or',
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
                     ),
                     Expanded(child: Divider(color: Colors.grey.shade300)),
                   ],
@@ -226,35 +274,32 @@ class _LoginViewState extends State<LoginView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Don't have an account? ", style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade600, fontSize: 14)),
+                    Text(
+                      "Don't have an account? ",
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
                     GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterView())),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RegisterView()),
+                      ),
                       child: const Text(
                         'Sign Up',
-                        style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: _purple, fontSize: 14),
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.bold,
+                          color: _purple,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 32),
-
-                // ── Demo hint ──
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(color: const Color(0xFFF3E8FF), borderRadius: BorderRadius.circular(12)),
-                  child: Column(
-                    children: [
-                      Text('Demo tip', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 12, color: Colors.purple.shade700)),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Include "vet" in your email to sign in as a Veterinarian.\ne.g. drsmith.vet@clinic.com',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: Colors.purple.shade600),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
               ],
             ),
           ),

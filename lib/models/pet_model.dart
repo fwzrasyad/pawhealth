@@ -9,6 +9,7 @@ class Pet {
   final int age;
   final String gender;
   final double weight;
+  final String? profileImageUrl;
   final List<DailyRoutineLog> dailyRoutines;
 
   Pet({
@@ -20,6 +21,7 @@ class Pet {
     required this.age,
     required this.gender,
     required this.weight,
+    this.profileImageUrl,
     this.dailyRoutines = const [],
   });
 
@@ -33,6 +35,7 @@ class Pet {
       age: json['age'] as int,
       gender: json['gender'] as String,
       weight: (json['weight'] as num).toDouble(),
+      profileImageUrl: json['profile_image_url'] as String?,
       dailyRoutines:
           (json['daily_routines'] as List<dynamic>?)
               ?.map((e) => DailyRoutineLog.fromJson(e as Map<String, dynamic>))
@@ -51,6 +54,7 @@ class Pet {
       'age': age,
       'gender': gender,
       'weight': weight,
+      'profile_image_url': profileImageUrl,
       'daily_routines': dailyRoutines.map((log) => log.toJson()).toList(),
     };
   }
@@ -64,6 +68,7 @@ class Pet {
     int? age,
     String? gender,
     double? weight,
+    String? profileImageUrl,
     List<DailyRoutineLog>? dailyRoutines,
   }) {
     return Pet(
@@ -75,6 +80,7 @@ class Pet {
       age: age ?? this.age,
       gender: gender ?? this.gender,
       weight: weight ?? this.weight,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       dailyRoutines: dailyRoutines ?? this.dailyRoutines,
     );
   }

@@ -6,13 +6,15 @@ class ApiService {
   final String _baseUrl;
 
   ApiService()
-    : _baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000';
+    // : _baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000';
+    : _baseUrl = 'http://10.0.2.2:8000/api';
 
   Future<dynamic> get(String endpoint, {String? token}) async {
     final response = await http.get(
       Uri.parse('$_baseUrl$endpoint'),
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
       },
     );
@@ -33,6 +35,7 @@ class ApiService {
       Uri.parse('$_baseUrl$endpoint'),
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
       },
       body: jsonEncode(body),
@@ -54,6 +57,7 @@ class ApiService {
       Uri.parse('$_baseUrl$endpoint'),
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
       },
       body: jsonEncode(body),
@@ -69,7 +73,10 @@ class ApiService {
   Future<void> delete(String endpoint, String? token) async {
     final response = await http.delete(
       Uri.parse('$_baseUrl$endpoint'),
-      headers: {if (token != null) 'Authorization': 'Bearer $token'},
+      headers: {
+        'Accept': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
     );
 
     if (response.statusCode != 200) {

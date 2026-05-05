@@ -49,85 +49,97 @@ class _OwnerDashboardViewState extends State<OwnerDashboardView> {
       backgroundColor: const Color(0xFFF8F9FA),
       body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 16,
-              offset: const Offset(0, -4),
+              color: const Color(0xFF8A2BE2).withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -6),
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _NavItem(
-                  index: 0,
-                  selected: _selectedIndex == 0,
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'Home',
-                  onTap: () => setState(() => _selectedIndex = 0),
-                ),
-                _NavItem(
-                  index: 1,
-                  selected: _selectedIndex == 1,
-                  icon: Icons.pets_outlined,
-                  activeIcon: Icons.pets,
-                  label: 'Pets',
-                  onTap: () => setState(() => _selectedIndex = 1),
-                ),
-                // Centre FAB
-                GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AvailableVetsView(),
-                    ),
-                  ),
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF8A2BE2),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF8A2BE2).withValues(alpha: 0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.medical_services_outlined,
-                      color: Colors.white,
-                      size: 26,
-                    ),
+          top: false,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _NavItem(
+                index: 0,
+                selected: _selectedIndex == 0,
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home_rounded,
+                label: 'Home',
+                onTap: () => setState(() => _selectedIndex = 0),
+              ),
+              _NavItem(
+                index: 1,
+                selected: _selectedIndex == 1,
+                icon: Icons.pets_outlined,
+                activeIcon: Icons.pets,
+                label: 'Pets',
+                onTap: () => setState(() => _selectedIndex = 1),
+              ),
+              // Centre FAB
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AvailableVetsView(),
                   ),
                 ),
-                _NavItem(
-                  index: 3,
-                  selected: _selectedIndex == 3,
-                  icon: Icons.calendar_today_outlined,
-                  activeIcon: Icons.calendar_today,
-                  label: 'Visits',
-                  onTap: () => setState(() => _selectedIndex = 3),
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF9333EA), Color(0xFF8A2BE2), Color(0xFF6B21A8)],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF8A2BE2).withValues(alpha: 0.45),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.medical_services_rounded,
+                    color: Colors.white,
+                    size: 26,
+                  ),
                 ),
-                _NavItem(
-                  index: 4,
-                  selected: _selectedIndex == 4,
-                  icon: Icons.analytics_outlined,
-                  activeIcon: Icons.analytics,
-                  label: 'Analyze',
-                  onTap: () => setState(() => _selectedIndex = 4),
-                ),
-              ],
-            ),
+              ),
+              _NavItem(
+                index: 3,
+                selected: _selectedIndex == 3,
+                icon: Icons.calendar_today_outlined,
+                activeIcon: Icons.calendar_today,
+                label: 'Visits',
+                onTap: () => setState(() => _selectedIndex = 3),
+              ),
+              _NavItem(
+                index: 4,
+                selected: _selectedIndex == 4,
+                icon: Icons.analytics_outlined,
+                activeIcon: Icons.analytics,
+                label: 'Analyze',
+                onTap: () => setState(() => _selectedIndex = 4),
+              ),
+            ],
           ),
         ),
       ),
@@ -160,31 +172,49 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 64,
+        width: 60,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: selected ? const Color(0xFFF3E8FF) : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
+                gradient: selected
+                    ? const LinearGradient(
+                        colors: [Color(0xFFF3E8FF), Color(0xFFEDE9FE)],
+                      )
+                    : null,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
                 selected ? activeIcon : icon,
-                color: selected ? _purple : Colors.grey.shade500,
-                size: 24,
+                color: selected ? _purple : Colors.grey.shade400,
+                size: 22,
               ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
+            const SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
               style: TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 11,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                color: selected ? _purple : Colors.grey.shade500,
+                fontSize: selected ? 10 : 10,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? _purple : Colors.grey.shade400,
+              ),
+              child: Text(label),
+            ),
+            const SizedBox(height: 3),
+            // Active dot indicator
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              width: selected ? 5 : 0,
+              height: selected ? 5 : 0,
+              decoration: const BoxDecoration(
+                color: _purple,
+                shape: BoxShape.circle,
               ),
             ),
           ],

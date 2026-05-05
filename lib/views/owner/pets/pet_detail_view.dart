@@ -49,60 +49,18 @@ class PetDetailView extends StatelessWidget {
             ),
           ),
 
-          // Back button
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            left: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {
-                  controller.clearSelectedPet();
-                  Navigator.pop(context);
-                },
-              ),
-            ),
-          ),
-
-          // Edit button
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 10,
-            right: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.edit_outlined, color: _purple),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AddEditPetView(petToEdit: pet),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-
           // Scrollable content
           Positioned.fill(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.35 - 20),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.35 - 20,
+                  ),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                    ),
+                    decoration: const BoxDecoration(color: Colors.white),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -157,6 +115,49 @@ class PetDetailView extends StatelessWidget {
               ),
             ),
           ),
+
+          // Back button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.9),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () {
+                  controller.clearSelectedPet();
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ),
+
+          // Edit button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            right: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.9),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.edit_outlined, color: _purple),
+                onPressed: () {
+                  print('redirect');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AddEditPetView(petToEdit: pet),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -164,21 +165,38 @@ class PetDetailView extends StatelessWidget {
 
   String _emoji(String species) {
     switch (species.toLowerCase()) {
-      case 'cat': return '🐱';
-      case 'dog': return '🐶';
-      case 'rabbit': return '🐰';
-      case 'bird': return '🦜';
-      default: return '🐾';
+      case 'cat':
+        return '🐱';
+      case 'dog':
+        return '🐶';
+      case 'rabbit':
+        return '🐰';
+      case 'bird':
+        return '🦜';
+      default:
+        return '🐾';
     }
   }
 
   Widget _buildInfoGrid(Pet pet) {
     final infoItems = [
-      {'label': 'Species', 'value': pet.species, 'icon': Icons.category_outlined},
-      {'label': 'Gender', 'value': pet.gender, 'icon': Icons.transgender_outlined},
+      {
+        'label': 'Species',
+        'value': pet.species,
+        'icon': Icons.category_outlined,
+      },
+      {
+        'label': 'Gender',
+        'value': pet.gender,
+        'icon': Icons.transgender_outlined,
+      },
       {'label': 'Age', 'value': '${pet.age} yrs', 'icon': Icons.cake_outlined},
       {'label': 'Breed', 'value': pet.breed, 'icon': Icons.pets_outlined},
-      {'label': 'Weight', 'value': '${pet.weight} kg', 'icon': Icons.monitor_weight_outlined},
+      {
+        'label': 'Weight',
+        'value': '${pet.weight} kg',
+        'icon': Icons.monitor_weight_outlined,
+      },
     ];
 
     return GridView.builder(
@@ -203,7 +221,11 @@ class PetDetailView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(item['icon'] as IconData, color: const Color(0xFF8A2BE2), size: 20),
+              Icon(
+                item['icon'] as IconData,
+                color: const Color(0xFF8A2BE2),
+                size: 20,
+              ),
               const SizedBox(height: 6),
               Text(
                 item['label'] as String,
@@ -241,18 +263,20 @@ class PetDetailView extends StatelessWidget {
         'label': 'Log Daily\nRoutine',
         'subtitle': 'Diet, Weight, Activity',
         'onTap': () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => DailyRoutineFormView(petId: pet.petId)),
-            ),
+          context,
+          MaterialPageRoute(
+            builder: (_) => DailyRoutineFormView(petId: pet.petId),
+          ),
+        ),
       },
       {
         'icon': Icons.medical_services_outlined,
         'label': 'Medical\nRecords',
         'subtitle': 'Vaccines, Docs',
         'onTap': () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => MedicalRecordListView(pet: pet)),
-            ),
+          context,
+          MaterialPageRoute(builder: (_) => MedicalRecordListView(pet: pet)),
+        ),
       },
       {
         'icon': Icons.document_scanner_outlined,
@@ -294,7 +318,11 @@ class PetDetailView extends StatelessWidget {
                     color: Color(0xFFF3E8FF),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(a['icon'] as IconData, color: const Color(0xFF8A2BE2), size: 22),
+                  child: Icon(
+                    a['icon'] as IconData,
+                    color: const Color(0xFF8A2BE2),
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Expanded(

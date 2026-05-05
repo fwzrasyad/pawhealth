@@ -56,14 +56,14 @@ class Appointment {
 
   Map<String, dynamic> toJson() {
     return {
-      'appointment_id': appointmentId,
+      if (appointmentId.isNotEmpty) 'appointment_id': appointmentId,
       'pet_id': petId,
       'pet_name': petName,
       'vet_id': vetId,
       'vet_name': vetName,
       'reason': reason,
-      'appointment_date': appointmentDate.toIso8601String(),
-      'time_slot': timeSlot.toIso8601String(),
+      'appointment_date': appointmentDate.toIso8601String().split('T').join(' ').split('.')[0],
+      'time_slot': timeSlot.toIso8601String().split('T').join(' ').split('.')[0],
       'status': status.name,
     };
   }
