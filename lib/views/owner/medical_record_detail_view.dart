@@ -95,7 +95,7 @@ class MedicalRecordDetailView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Treatment & Notes',
+                    'Clinical Notes',
                     style: TextStyle(
                       color: Color(0xFF333333),
                       fontSize: 18,
@@ -111,13 +111,65 @@ class MedicalRecordDetailView extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Text(
-                      record.treatment,
-                      style: const TextStyle(
-                        color: Color(0xFF333333),
-                        fontSize: 16,
-                        height: 1.5,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (record.doctorNotes?.isNotEmpty ?? false) ...[
+                          const Text(
+                            'Doctor Notes',
+                            style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            record.doctorNotes!,
+                            style: const TextStyle(color: Color(0xFF333333), fontSize: 14, height: 1.5),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (record.medicationsPrescribed?.isNotEmpty ?? false) ...[
+                          const Text(
+                            'Medications',
+                            style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            record.medicationsPrescribed!.join(', '),
+                            style: const TextStyle(color: Color(0xFF333333), fontSize: 14, height: 1.5),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (record.followUpInstructions?.isNotEmpty ?? false) ...[
+                          const Text(
+                            'Follow-up Instructions',
+                            style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            record.followUpInstructions!,
+                            style: const TextStyle(color: Color(0xFF333333), fontSize: 14, height: 1.5),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (record.treatment?.isNotEmpty ?? false) ...[
+                          const Text(
+                            'Treatment',
+                            style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            record.treatment!,
+                            style: const TextStyle(color: Color(0xFF333333), fontSize: 14, height: 1.5),
+                          ),
+                        ],
+                        if ((record.doctorNotes?.isEmpty ?? true) &&
+                            (record.medicationsPrescribed?.isEmpty ?? true) &&
+                            (record.followUpInstructions?.isEmpty ?? true) &&
+                            (record.treatment?.isEmpty ?? true))
+                          const Text(
+                            'No notes recorded.',
+                            style: TextStyle(color: Colors.grey, fontSize: 14, fontStyle: FontStyle.italic),
+                          ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),

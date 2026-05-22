@@ -1,7 +1,11 @@
+import 'medical_record_model.dart';
+
 enum AppointmentStatus { pending, confirmed, completed, cancelled }
 
 class Appointment {
   final String appointmentId;
+  final String clinicId;
+  final String clinicName;
   final String petId;
   final String petName;
   final String vetId;
@@ -10,22 +14,28 @@ class Appointment {
   final DateTime appointmentDate;
   final DateTime timeSlot;
   final AppointmentStatus status;
+  final MedicalRecord? medicalRecord;
 
   Appointment({
     required this.appointmentId,
+    this.clinicId = '',
+    this.clinicName = '',
     required this.petId,
     required this.petName,
-    required this.vetId,
-    required this.vetName,
+    this.vetId = '',
+    this.vetName = '',
     required this.reason,
     required this.appointmentDate,
     required this.timeSlot,
     required this.status,
+    this.medicalRecord,
   });
 
-  Appointment copyWith({AppointmentStatus? status}) {
+  Appointment copyWith({AppointmentStatus? status, MedicalRecord? medicalRecord}) {
     return Appointment(
       appointmentId: appointmentId,
+      clinicId: clinicId,
+      clinicName: clinicName,
       petId: petId,
       petName: petName,
       vetId: vetId,
@@ -34,15 +44,18 @@ class Appointment {
       appointmentDate: appointmentDate,
       timeSlot: timeSlot,
       status: status ?? this.status,
+      medicalRecord: medicalRecord ?? this.medicalRecord,
     );
   }
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
     return Appointment(
-      appointmentId: json['appointment_id'],
-      petId: json['pet_id'],
+      appointmentId: json['appointment_id']?.toString() ?? '',
+      clinicId: json['clinic_id']?.toString() ?? '',
+      clinicName: json['clinic_name'] ?? '',
+      petId: json['pet_id']?.toString() ?? '',
       petName: json['pet_name'] ?? '',
-      vetId: json['vet_id'],
+      vetId: json['vet_id']?.toString() ?? '',
       vetName: json['vet_name'] ?? '',
       reason: json['reason'] ?? '',
       appointmentDate: DateTime.parse(json['appointment_date']),
@@ -51,16 +64,19 @@ class Appointment {
         (e) => e.name == json['status'],
         orElse: () => AppointmentStatus.pending,
       ),
+      medicalRecord: json['medical_record'] != null ? MedicalRecord.fromJson(json['medical_record']) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       if (appointmentId.isNotEmpty) 'appointment_id': appointmentId,
+      if (clinicId.isNotEmpty) 'clinic_id': clinicId,
+      if (clinicName.isNotEmpty) 'clinic_name': clinicName,
       'pet_id': petId,
       'pet_name': petName,
-      'vet_id': vetId,
-      'vet_name': vetName,
+      if (vetId.isNotEmpty) 'vet_id': vetId,
+      if (vetName.isNotEmpty) 'vet_name': vetName,
       'reason': reason,
       'appointment_date': appointmentDate.toIso8601String().split('T').join(' ').split('.')[0],
       'time_slot': timeSlot.toIso8601String().split('T').join(' ').split('.')[0],

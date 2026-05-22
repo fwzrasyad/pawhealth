@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/appointment_controller.dart';
 import '../../../models/appointment_model.dart';
-import '../booking/available_vets_view.dart';
+import '../booking/book_appointment_view.dart';
 
 class VisitDetailView extends StatelessWidget {
   final Appointment appointment;
@@ -140,6 +140,79 @@ class VisitDetailView extends StatelessWidget {
               _InfoRow(icon: Icons.note_outlined, label: 'Reason',
                   value: live.reason),
             ]),
+
+            if (isCompleted && live.medicalRecord != null) ...[
+              const SizedBox(height: 24),
+              const Text(
+                "Doctor's Notes",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Diagnosis: ${live.medicalRecord!.diagnosis}',
+                      style: const TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    if (live.medicalRecord!.doctorNotes?.isNotEmpty ?? false) ...[
+                      const Text(
+                        'Notes:',
+                        style: TextStyle(fontSize: 13, fontFamily: 'Poppins', color: Colors.grey),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        live.medicalRecord!.doctorNotes!,
+                        style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    if (live.medicalRecord!.medicationsPrescribed?.isNotEmpty ?? false) ...[
+                      const Text(
+                        'Medications:',
+                        style: TextStyle(fontSize: 13, fontFamily: 'Poppins', color: Colors.grey),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        live.medicalRecord!.medicationsPrescribed!.join(', '),
+                        style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    if (live.medicalRecord!.followUpInstructions?.isNotEmpty ?? false) ...[
+                      const Text(
+                        'Follow-up Instructions:',
+                        style: TextStyle(fontSize: 13, fontFamily: 'Poppins', color: Colors.grey),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        live.medicalRecord!.followUpInstructions!,
+                        style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -235,7 +308,7 @@ class VisitDetailView extends StatelessWidget {
             ),
             onPressed: () => Navigator.push(
               ctx,
-              MaterialPageRoute(builder: (_) => const AvailableVetsView()),
+              MaterialPageRoute(builder: (_) => const BookAppointmentView()),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: _purple,

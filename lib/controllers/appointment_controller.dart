@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/api_service.dart';
-import '../models/veterinarian_model.dart';
 import '../models/appointment_model.dart';
+import '../models/clinic_model.dart';
+import '../models/veterinarian_model.dart';
 
 class AppointmentController extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
+  Clinic? _selectedClinic;
   Veterinarian? _selectedVet;
   DateTime? _selectedDate;
   DateTime? _selectedTimeSlot;
+  String _reason = 'General Consultation';
 
-  List<Appointment> _appointments = [];
+  List<Clinic> _clinics = [];
   List<Veterinarian> _vets = [];
+  List<Appointment> _appointments = [];
   bool _isLoading = false;
 
+  Clinic? get selectedClinic => _selectedClinic;
   Veterinarian? get selectedVet => _selectedVet;
   DateTime? get selectedDate => _selectedDate;
   DateTime? get selectedTimeSlot => _selectedTimeSlot;
+  String get reason => _reason;
+  
+  List<Clinic> get clinics => _clinics;
   List<Veterinarian> get vets => _vets;
   bool get isLoading => _isLoading;
 
@@ -41,39 +49,6 @@ class AppointmentController extends ChangeNotifier {
     return await FirebaseAuth.instance.currentUser?.getIdToken();
   }
 
-  // ── Fetch Veterinarians ───────────────────────────────────────────────────
-
-  /// Fetches the list of all available veterinarians from the backend.
-  Future<void> fetchVeterinarians() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final token = await _getToken();
-      final response = await _apiService.get('/veterinarians', token: token);
-      final List<dynamic> vetData = response['data'] ?? response;
-      _vets = vetData.map((json) => Veterinarian.fromJson(json)).toList();
-    } catch (e) {
-      print('Error fetching veterinarians: $e');
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  /// Fetches details for a single veterinarian by ID.
-  Future<Veterinarian?> fetchVetDetails(String vetId) async {
-    try {
-      final token = await _getToken();
-      final response = await _apiService.get('/veterinarians/$vetId', token: token);
-      final vetData = response['data'] ?? response;
-      return Veterinarian.fromJson(vetData);
-    } catch (e) {
-      print('Error fetching vet details: $e');
-      return null;
-    }
-  }
-
   // ── Fetch Appointments ────────────────────────────────────────────────────
 
   /// Fetches all appointments for the currently logged-in user.
@@ -88,6 +63,42 @@ class AppointmentController extends ChangeNotifier {
       _appointments = data.map((json) => Appointment.fromJson(json)).toList();
     } catch (e) {
       print('Error fetching appointments: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // ── Fetch Clinics & Vets ──────────────────────────────────────────────────
+
+  Future<void> fetchClinics() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/clinics', token: token);
+      final List<dynamic> data = response['data'] ?? response;
+      _clinics = data.map((json) => Clinic.fromJson(json)).toList();
+    } catch (e) {
+      print('Error fetching clinics: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> fetchVetsForClinic(String clinicId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/clinics/$clinicId/vets', token: token);
+      final List<dynamic> data = response['data'] ?? response;
+      _vets = data.map((json) => Veterinarian.fromJson(json)).toList();
+    } catch (e) {
+      print('Error fetching vets for clinic: $e');
     }
 
     _isLoading = false;
@@ -157,6 +168,16 @@ class AppointmentController extends ChangeNotifier {
 
   // ── Booking Flow Selection Helpers ────────────────────────────────────────
 
+  void selectClinic(Clinic clinic) {
+    _selectedClinic = clinic;
+    _selectedVet = null; // Reset vet when clinic changes
+    _selectedDate = null;
+    _selectedTimeSlot = null;
+    _vets = []; // Clear previous vets
+    notifyListeners();
+    fetchVetsForClinic(clinic.clinicId);
+  }
+
   void selectVet(Veterinarian vet) {
     _selectedVet = vet;
     _selectedDate = null;
@@ -175,18 +196,39 @@ class AppointmentController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Books a consultation using the currently selected vet, date, and time slot.
-  /// Creates a real appointment via the API.
-  Future<bool> bookConsultation({String petId = 'pet_1', String petName = 'My Pet'}) async {
-    if (_selectedVet == null || _selectedDate == null || _selectedTimeSlot == null) return false;
+  void setReason(String reason) {
+    _reason = reason;
+    notifyListeners();
+  }
+
+  /// Resets the booking form state.
+  void resetBookingForm() {
+    _selectedClinic = null;
+    _selectedVet = null;
+    _selectedDate = null;
+    _selectedTimeSlot = null;
+    _reason = 'General Consultation';
+    _vets = [];
+    notifyListeners();
+  }
+
+  /// Books a clinic consultation with a specific vet.
+  Future<bool> bookConsultation({
+    required String petId,
+    required String petName,
+    String? reason,
+  }) async {
+    if (_selectedClinic == null || _selectedVet == null || _selectedDate == null || _selectedTimeSlot == null) return false;
 
     final appointment = Appointment(
       appointmentId: '', // Backend will assign the real ID
+      clinicId: _selectedClinic!.clinicId,
+      clinicName: _selectedClinic!.name,
       petId: petId,
       petName: petName,
       vetId: _selectedVet!.vetId,
       vetName: _selectedVet!.name,
-      reason: 'General Consultation',
+      reason: reason ?? _reason,
       appointmentDate: _selectedDate!,
       timeSlot: _selectedTimeSlot!,
       status: AppointmentStatus.pending,
@@ -195,10 +237,7 @@ class AppointmentController extends ChangeNotifier {
     final success = await createAppointment(appointment);
 
     if (success) {
-      _selectedVet = null;
-      _selectedDate = null;
-      _selectedTimeSlot = null;
-      notifyListeners();
+      resetBookingForm();
     }
 
     return success;

@@ -18,6 +18,7 @@ class ApiService {
         if (token != null) 'Authorization': 'Bearer $token',
       },
     );
+    print('API RESPONSE FOR VETS: ${response.body}');
 
     if (response.statusCode != 200) {
       throw Exception('Failed to load $endpoint: ${response.body}');

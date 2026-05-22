@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Veterinarian {
   final String vetId;
   final String name;
@@ -9,6 +11,7 @@ class Veterinarian {
   /// Weekly schedule: keys are day names ("Monday", "Tuesday", etc.),
   /// values are lists of available time strings like ["09:00", "10:00"].
   final Map<String, List<String>> weeklySchedule;
+  final List<DateTime> bookedSlots;
 
   Veterinarian({
     required this.vetId,
@@ -18,6 +21,7 @@ class Veterinarian {
     this.specialties = const [],
     this.bio = '',
     this.weeklySchedule = const {},
+    this.bookedSlots = const [],
   });
 
   factory Veterinarian.fromJson(Map<String, dynamic> json) {
@@ -32,14 +36,39 @@ class Veterinarian {
       }
     }
 
+    // Handle specialties which might be a JSON string or a List
+    List<String> parsedSpecialties = [];
+    if (json['specialties'] != null) {
+      if (json['specialties'] is String) {
+        try {
+          final decoded = jsonDecode(json['specialties']);
+          parsedSpecialties = List<String>.from(decoded ?? []);
+        } catch (e) {
+          parsedSpecialties = [];
+        }
+      } else if (json['specialties'] is Iterable) {
+        parsedSpecialties = List<String>.from(json['specialties']);
+      }
+    }
+
+    List<DateTime> parsedBookedSlots = [];
+    if (json['booked_slots'] != null && json['booked_slots'] is Iterable) {
+      parsedBookedSlots = (json['booked_slots'] as Iterable)
+          .map((e) => DateTime.tryParse(e.toString()))
+          .where((e) => e != null)
+          .cast<DateTime>()
+          .toList();
+    }
+
     return Veterinarian(
       vetId: json['vet_id']?.toString() ?? json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       profileImageUrl: json['profile_image_url']?.toString() ?? json['profile_image']?.toString() ?? '',
       workingHours: json['working_hours']?.toString() ?? '',
-      specialties: List<String>.from(json['specialties'] ?? []),
+      specialties: parsedSpecialties,
       bio: json['bio']?.toString() ?? '',
       weeklySchedule: schedule,
+      bookedSlots: parsedBookedSlots,
     );
   }
 
@@ -52,6 +81,7 @@ class Veterinarian {
       'specialties': specialties,
       'bio': bio,
       'weekly_schedule': weeklySchedule,
+      'booked_slots': bookedSlots.map((e) => e.toIso8601String()).toList(),
     };
   }
 
@@ -63,6 +93,7 @@ class Veterinarian {
     List<String>? specialties,
     String? bio,
     Map<String, List<String>>? weeklySchedule,
+    List<DateTime>? bookedSlots,
   }) {
     return Veterinarian(
       vetId: vetId ?? this.vetId,
@@ -72,6 +103,7 @@ class Veterinarian {
       specialties: specialties ?? this.specialties,
       bio: bio ?? this.bio,
       weeklySchedule: weeklySchedule ?? this.weeklySchedule,
+      bookedSlots: bookedSlots ?? this.bookedSlots,
     );
   }
 

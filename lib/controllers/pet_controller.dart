@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../models/pet_model.dart';
 import '../models/daily_routine_model.dart';
+import '../models/health_journal_model.dart';
 
 class PetController extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -140,6 +141,55 @@ class PetController extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  // ── Add Health Journal Entry ──────────────────────────────────────────────
+
+  /// Adds a health journal entry for a specific pet via the backend API.
+  Future<void> addHealthJournalEntry(String petId, HealthJournalEntry entry) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      await _apiService.post(
+        '/pets/$petId/health-journals',
+        entry.toJson(),
+        token,
+      );
+
+      debugPrint('Health journal entry added successfully');
+    } catch (e) {
+      debugPrint('Error adding health journal entry: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Fetches all health journal entries for a specific pet.
+  Future<List<HealthJournalEntry>> fetchHealthJournalEntries(String petId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get(
+        '/pets/$petId/health-journals',
+        token: token,
+      );
+      final List<dynamic> data = response['data'] ?? response;
+      final entries = data.map((json) => HealthJournalEntry.fromJson(json)).toList();
+      
+      _isLoading = false;
+      notifyListeners();
+      return entries;
+    } catch (e) {
+      debugPrint('Error fetching health journal entries: $e');
+      _isLoading = false;
+      notifyListeners();
+      return [];
+    }
   }
 
   // ── Upload Profile Picture ────────────────────────────────────────────────

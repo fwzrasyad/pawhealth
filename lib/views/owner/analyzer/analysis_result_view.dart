@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/smart_analyzer_controller.dart';
-import '../../owner/booking/available_vets_view.dart';
+import '../../owner/booking/book_appointment_view.dart';
 import 'smart_analyzer_intro_view.dart';
 
 class AnalysisResultView extends StatelessWidget {
@@ -275,7 +275,7 @@ class AnalysisResultView extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const AvailableVetsView()),
+                                    builder: (_) => const BookAppointmentView()),
                               );
                             },
                             style: ElevatedButton.styleFrom(

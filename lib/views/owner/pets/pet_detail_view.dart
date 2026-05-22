@@ -4,7 +4,7 @@ import '../../../controllers/pet_controller.dart';
 import '../../../models/pet_model.dart';
 import '../medical_record_list_view.dart';
 import '../daily_routine_form_view.dart';
-import '../analyzer/smart_analyzer_intro_view.dart';
+import '../ai/ai_scanner_view.dart';
 import 'add_edit_pet_view.dart';
 
 class PetDetailView extends StatelessWidget {
@@ -258,17 +258,17 @@ class PetDetailView extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context, Pet pet) {
     final actions = [
-      {
-        'icon': Icons.today_outlined,
-        'label': 'Log Daily\nRoutine',
-        'subtitle': 'Diet, Weight, Activity',
-        'onTap': () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DailyRoutineFormView(petId: pet.petId),
-          ),
-        ),
-      },
+      // {
+      //   'icon': Icons.today_outlined,
+      //   'label': 'Log Daily\nRoutine',
+      //   'subtitle': 'Diet, Weight, Activity',
+      //   'onTap': () => Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //       builder: (_) => DailyRoutineFormView(petId: pet.petId),
+      //     ),
+      //   ),
+      // },
       {
         'icon': Icons.medical_services_outlined,
         'label': 'Medical\nRecords',
@@ -285,7 +285,7 @@ class PetDetailView extends StatelessWidget {
         'onTap': () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const SmartAnalyzerIntroView()),
+            MaterialPageRoute(builder: (_) => const AIScannerView()),
           );
         },
       },

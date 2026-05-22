@@ -9,8 +9,8 @@ import '../../models/appointment_model.dart';
 import '../../models/daily_routine_model.dart';
 import '../profile/profile_settings_view.dart';
 import 'pets/my_pets_list_view.dart';
-import 'booking/available_vets_view.dart';
-import 'analyzer/smart_analyzer_intro_view.dart';
+import 'booking/book_appointment_view.dart';
+import 'ai/ai_scanner_view.dart';
 import 'visits/my_visits_view.dart';
 
 class OwnerDashboardView extends StatefulWidget {
@@ -28,7 +28,7 @@ class _OwnerDashboardViewState extends State<OwnerDashboardView> {
     const MyPetsListView(),
     const Center(child: Text('')), // placeholder for center FAB
     const MyVisitsView(),
-    const SmartAnalyzerIntroView(),
+    const AIScannerView(),
   ];
 
   @override
@@ -95,7 +95,7 @@ class _OwnerDashboardViewState extends State<OwnerDashboardView> {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const AvailableVetsView(),
+                    builder: (_) => const BookAppointmentView(),
                   ),
                 ),
                 child: Container(
@@ -258,17 +258,7 @@ class _DashboardContent extends StatelessWidget {
     final upcoming = apptCtrl.upcomingVisits;
     final myPets = petCtrl.pets;
 
-    final allRoutines = <Map<String, dynamic>>[];
-    for (var pet in myPets) {
-      for (var log in pet.dailyRoutines) {
-        allRoutines.add({
-          'petName': pet.name,
-          'log': log,
-        });
-      }
-    }
-    allRoutines.sort((a, b) => (b['log'].date as DateTime).compareTo(a['log'].date as DateTime));
-    final recentRoutines = allRoutines.take(3).toList();
+
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -351,13 +341,13 @@ class _DashboardContent extends StatelessWidget {
                 Expanded(
                   child: _QuickActionCard(
                     icon: Icons.calendar_month_outlined,
-                    label: 'Book Vet',
+                    label: 'Book Appt',
                     iconColor: _purple,
                     bgColor: _lightPurple,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const AvailableVetsView(),
+                        builder: (_) => const BookAppointmentView(),
                       ),
                     ),
                   ),
@@ -372,7 +362,7 @@ class _DashboardContent extends StatelessWidget {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const SmartAnalyzerIntroView(),
+                        builder: (_) => const AIScannerView(),
                       ),
                     ),
                   ),
@@ -449,50 +439,6 @@ class _DashboardContent extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 28),
-
-            // ── Recent Activity Logs ─────────────────────────────────────
-            const Text(
-              "Recent Logs",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-                color: Colors.black,
-              ),
-            ),
-            const SizedBox(height: 14),
-            recentRoutines.isEmpty
-                ? Text(
-                    'No routine logs recently.',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      color: Colors.grey.shade500,
-                    ),
-                  )
-                : Column(
-                    children: recentRoutines.map((r) {
-                      final petName = r['petName'] as String;
-                      final log = r['log'] as DailyRoutineLog;
-                      
-                      IconData getIcon(String act) {
-                        if (act.toLowerCase().contains('high')) return Icons.directions_run;
-                        if (act.toLowerCase().contains('low')) return Icons.bedtime;
-                        return Icons.pets;
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10.0),
-                        child: _RoutineItem(
-                          icon: getIcon(log.activityLevel),
-                          title: '$petName log',
-                          subtitle: 'Activity: ${log.activityLevel} | W: ${log.weight}kg',
-                          time: DateFormat('MMM d').format(log.date),
-                          done: true,
-                        ),
-                      );
-                    }).toList(),
-                  ),
           ],
         ),
       ),
@@ -512,7 +458,7 @@ class _UpcomingBanner extends StatelessWidget {
       return GestureDetector(
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AvailableVetsView()),
+          MaterialPageRoute(builder: (_) => const BookAppointmentView()),
         ),
         child: Container(
           width: double.infinity,

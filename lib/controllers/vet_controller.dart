@@ -31,6 +31,10 @@ class VetController extends ChangeNotifier {
       _appointments.where((a) => a.status == AppointmentStatus.confirmed).toList()
         ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
 
+  List<Appointment> get completedAppointments =>
+      _appointments.where((a) => a.status == AppointmentStatus.completed).toList()
+        ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
+
   List<Appointment> get todaysAppointments {
     final today = DateTime.now();
     return confirmedAppointments.where((a) =>
@@ -344,6 +348,85 @@ class VetController extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  COMPLETE APPOINTMENT & CLINICAL NOTES
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Marks an appointment as completed ("Start Consultation" action).
+  Future<void> completeAppointment(String appointmentId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      await _apiService.put('/appointments/$appointmentId', {
+        'status': AppointmentStatus.completed.name,
+      }, token);
+
+      final idx = _appointments.indexWhere((a) => a.appointmentId == appointmentId);
+      if (idx != -1) {
+        _appointments[idx] = _appointments[idx].copyWith(status: AppointmentStatus.completed);
+      }
+    } catch (e) {
+      debugPrint('Error completing appointment: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  /// Submits clinical notes (medical record) for a completed appointment.
+  Future<MedicalRecord?> submitClinicalNotes({
+    required String appointmentId,
+    required String petId,
+    required String diagnosis,
+    required String doctorNotes,
+    required List<String> medicationsPrescribed,
+    required String followUpInstructions,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post('/medical-records', {
+        'appointment_id': appointmentId,
+        'pet_id': petId,
+        'diagnosis': diagnosis,
+        'doctor_notes': doctorNotes,
+        'medications_prescribed': medicationsPrescribed,
+        'follow_up_instructions': followUpInstructions,
+      }, token);
+
+      final created = MedicalRecord.fromJson(response['data'] ?? response);
+      _medicalRecords.insert(0, created);
+
+      _isLoading = false;
+      notifyListeners();
+      return created;
+    } catch (e) {
+      debugPrint('Error submitting clinical notes: $e');
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// Fetches the medical record linked to a specific appointment (if any).
+  Future<MedicalRecord?> fetchMedicalRecordForAppointment(String appointmentId) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get('/medical-records?appointment_id=$appointmentId', token: token);
+      final List<dynamic> data = response['data'] ?? response;
+      if (data.isNotEmpty) {
+        return MedicalRecord.fromJson(data.first);
+      }
+    } catch (e) {
+      debugPrint('Error fetching medical record for appointment: $e');
+    }
+    return null;
   }
 
   // ── Convenience Getters ───────────────────────────────────────────────────

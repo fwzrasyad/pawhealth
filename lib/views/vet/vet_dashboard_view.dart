@@ -6,7 +6,7 @@ import '../../../controllers/vet_controller.dart';
 import '../../../models/appointment_model.dart';
 import 'manage_appointments_view.dart';
 import 'manage_availability_view.dart';
-import 'vet_patient_record_view.dart';
+import 'vet_appointment_details_view.dart';
 import 'vet_profile_view.dart';
 
 class VetDashboardView extends StatefulWidget {
@@ -54,7 +54,7 @@ class _VetDashboardViewState extends State<VetDashboardView> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _NavItem(index: 0, selected: _selectedIndex == 0, icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard, label: 'Dashboard', onTap: () => setState(() => _selectedIndex = 0)),
-                _NavItem(index: 1, selected: _selectedIndex == 1, icon: Icons.event_note_outlined, activeIcon: Icons.event_note, label: 'Requests', onTap: () => setState(() => _selectedIndex = 1)),
+                _NavItem(index: 1, selected: _selectedIndex == 1, icon: Icons.event_note_outlined, activeIcon: Icons.event_note, label: 'Appointments', onTap: () => setState(() => _selectedIndex = 1)),
                 _NavItem(index: 2, selected: _selectedIndex == 2, icon: Icons.calendar_month_outlined, activeIcon: Icons.calendar_month, label: 'Schedule', onTap: () => setState(() => _selectedIndex = 2)),
                 _NavItem(index: 3, selected: _selectedIndex == 3, icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile', onTap: () => setState(() => _selectedIndex = 3)),
               ],
@@ -218,6 +218,22 @@ class _VetHomeContent extends StatelessWidget {
               )
             else
               ...vc.pendingAppointments.take(2).map((a) => _PendingPreviewCard(appointment: a)),
+
+            const SizedBox(height: 28),
+
+            // History Section
+            const Text('History', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+            const SizedBox(height: 6),
+            Text('Completed appointments', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade500)),
+            const SizedBox(height: 14),
+            if (vc.completedAppointments.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 3))]),
+                child: Center(child: Text('No completed appointments yet', style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade500, fontSize: 14))),
+              )
+            else
+              ...vc.completedAppointments.take(5).map((a) => _HistoryCard(appointment: a)),
           ],
         ),
       ),
@@ -291,11 +307,7 @@ class _TimelineCard extends StatelessWidget {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                final vc = context.read<VetController>();
-                final pet = vc.getPetById(appointment.petId);
-                if (pet != null) {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => VetPatientRecordView(appointment: appointment)));
-                }
+                Navigator.push(context, MaterialPageRoute(builder: (_) => VetAppointmentDetailsView(appointment: appointment)));
               },
               child: Container(
                 margin: EdgeInsets.only(bottom: isLast ? 0 : 14),
@@ -335,7 +347,9 @@ class _PendingPreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VetAppointmentDetailsView(appointment: appointment))),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -359,6 +373,51 @@ class _PendingPreviewCard extends StatelessWidget {
           ),
           const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
         ],
+      ),
+    ),
+    );
+  }
+}
+
+class _HistoryCard extends StatelessWidget {
+  final Appointment appointment;
+  const _HistoryCard({required this.appointment});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VetAppointmentDetailsView(appointment: appointment))),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFBBF7D0)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2))],
+        ),
+        child: Row(
+          children: [
+            Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Color(0xFFF0FDF4), shape: BoxShape.circle), child: const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 18)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(appointment.petName, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black)),
+                  Text(DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot), style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500)),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(8)),
+              child: const Text('Completed', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 10, color: Color(0xFF166534))),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
+          ],
+        ),
       ),
     );
   }

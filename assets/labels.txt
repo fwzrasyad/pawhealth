@@ -1,0 +1,6 @@
+0 Ear Mites
+1 Feline Acne
+2 Fleas
+3 Healthy Cat
+4 Ringworm
+5 Scabies

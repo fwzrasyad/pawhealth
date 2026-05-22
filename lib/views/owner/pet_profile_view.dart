@@ -1,18 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/pet_controller.dart';
+import '../../controllers/appointment_controller.dart';
+import '../../models/health_journal_model.dart';
 import 'daily_routine_form_view.dart';
+import 'health_journal_form_view.dart';
 import 'package:intl/intl.dart';
 
-class PetProfileView extends StatelessWidget {
+class PetProfileView extends StatefulWidget {
   final String petId;
 
   const PetProfileView({super.key, required this.petId});
 
   @override
+  State<PetProfileView> createState() => _PetProfileViewState();
+}
+
+class _PetProfileViewState extends State<PetProfileView> {
+  List<HealthJournalEntry> _healthJournalEntries = [];
+  bool _loadingJournal = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHealthJournalEntries();
+  }
+
+  Future<void> _fetchHealthJournalEntries() async {
+    setState(() => _loadingJournal = true);
+    final petController = context.read<PetController>();
+    final entries = await petController.fetchHealthJournalEntries(widget.petId);
+    if (mounted) {
+      setState(() {
+        _healthJournalEntries = entries;
+        _loadingJournal = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final petController = Provider.of<PetController>(context);
-    final pet = petController.pets.firstWhere((p) => p.petId == petId);
+    final apptController = Provider.of<AppointmentController>(context);
+    final pet = petController.pets.firstWhere((p) => p.petId == widget.petId);
+    
+    final medicalHistory = apptController.pastVisits
+        .where((a) => a.petId == widget.petId && a.medicalRecord != null)
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -85,50 +119,33 @@ class PetProfileView extends StatelessWidget {
                   
                   const SizedBox(height: 32),
                   
-                  // Daily Routine Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Recent Routines',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF333333),
-                        ),
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => DailyRoutineFormView(petId: pet.petId)),
-                          );
-                        },
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add Log'),
-                        style: TextButton.styleFrom(foregroundColor: const Color(0xFF8A2BE2)),
-                      )
-                    ],
+                  // Medical History Section
+                  const Text(
+                    'Medical History',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF333333),
+                    ),
                   ),
-                  
                   const SizedBox(height: 12),
-                  
-                  pet.dailyRoutines.isEmpty
+                  medicalHistory.isEmpty
                       ? const Center(
                           child: Padding(
                             padding: EdgeInsets.all(24.0),
-                            child: Text('No daily routines logged yet.', style: TextStyle(color: Colors.grey)),
+                            child: Text('No medical history available.', style: TextStyle(color: Colors.grey)),
                           ),
                         )
                       : ListView.builder(
                           padding: EdgeInsets.zero,
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: pet.dailyRoutines.length,
+                          itemCount: medicalHistory.length,
                           itemBuilder: (context, index) {
-                            final log = pet.dailyRoutines[index];
+                            final appt = medicalHistory[index];
+                            final record = appt.medicalRecord!;
                             return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
+                              margin: const EdgeInsets.only(bottom: 14),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -142,32 +159,152 @@ class PetProfileView extends StatelessWidget {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        DateFormat('E, MMM dd, yyyy').format(log.date),
-                                        style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF333333)),
+                                        DateFormat('EEE, MMM dd, yyyy').format(appt.appointmentDate),
+                                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF333333)),
                                       ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFE0F2F1),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          '${log.weight} kg',
-                                          style: const TextStyle(color: Color(0xFF00897B), fontSize: 12, fontWeight: FontWeight.bold),
-                                        ),
-                                      )
+                                      Text(
+                                        appt.vetName,
+                                        style: const TextStyle(color: Color(0xFF8A2BE2), fontSize: 12, fontWeight: FontWeight.bold),
+                                      ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text('Activity: ${log.activityLevel}', style: const TextStyle(fontSize: 14)),
-                                  const SizedBox(height: 4),
-                                  Text('Diet: ${log.dietNotes}', style: const TextStyle(fontSize: 14, color: Colors.black54)),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    'Diagnosis: ${record.diagnosis}',
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    record.doctorNotes ?? record.treatment ?? 'No clinical notes provided',
+                                    style: const TextStyle(fontSize: 13, color: Colors.black54),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ],
                               ),
                             );
                           },
                         ),
-                ],
+                  
+                  const SizedBox(height: 40),
+                  
+                  // Health Journal Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Recovery & Health Journal',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF333333),
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => HealthJournalFormView(petId: pet.petId)),
+                          ).then((_) {
+                            // Refresh health journal entries when returning
+                            _fetchHealthJournalEntries();
+                          });
+                        },
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add Entry'),
+                        style: TextButton.styleFrom(foregroundColor: const Color(0xFF8A2BE2)),
+                      )
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  
+                  _loadingJournal
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24.0),
+                            child: CircularProgressIndicator(color: Color(0xFF8A2BE2)),
+                          ),
+                        )
+                      : _healthJournalEntries.isEmpty
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(24.0),
+                                child: Text('No health journal entries yet.', style: TextStyle(color: Colors.grey)),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _healthJournalEntries.length,
+                              itemBuilder: (context, index) {
+                                final entry = _healthJournalEntries[index];
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 14),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFEBEBEB)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            DateFormat('EEE, MMM dd, yyyy').format(entry.date),
+                                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF333333)),
+                                          ),
+                                          if (entry.symptomTags.isNotEmpty)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFF3E8FF),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                '${entry.symptomTags.length} symptom${entry.symptomTags.length > 1 ? 's' : ''}',
+                                                style: const TextStyle(
+                                                  color: Color(0xFF8A2BE2),
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      if (entry.symptomTags.isNotEmpty) ...[
+                                        const SizedBox(height: 10),
+                                        Wrap(
+                                          spacing: 6,
+                                          runSpacing: 6,
+                                          children: entry.symptomTags.map((tag) {
+                                            return Chip(
+                                              label: Text(
+                                                tag,
+                                                style: const TextStyle(fontSize: 11, color: Colors.white),
+                                              ),
+                                              backgroundColor: const Color(0xFF8A2BE2),
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ],
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        entry.observations,
+                                        style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),                ],
               ),
             ),
           ),
