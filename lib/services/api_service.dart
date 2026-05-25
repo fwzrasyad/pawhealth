@@ -84,4 +84,26 @@ class ApiService {
       throw Exception('Failed to delete $endpoint: ${response.body}');
     }
   }
+  Future<Map<String, dynamic>> patch(
+    String endpoint,
+    Map<String, dynamic> body,
+    String? token,
+  ) async {
+    final response = await http.patch(
+      Uri.parse('$_baseUrl$endpoint'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to patch $endpoint: ${response.body}');
+    }
+
+    if (response.body.isEmpty) return {};
+    return jsonDecode(response.body);
+  }
 }

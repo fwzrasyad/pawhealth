@@ -5,6 +5,8 @@ import '../services/firebase_auth_service.dart';
 import '../services/api_service.dart';
 import 'vet_controller.dart';
 
+import '../services/notification_service.dart';
+
 /// AuthController manages all authentication state for the app.
 ///
 /// It consumes [FirebaseAuthService] (raw Firebase calls) and [ApiService]
@@ -64,6 +66,11 @@ class AuthController extends ChangeNotifier {
 
         final userData = response['data'] ?? response;
         _currentUser = User.fromJson(userData);
+        
+        // Sync FCM token
+        if (token != null) {
+          await NotificationService().syncTokenWithBackend(token);
+        }
       } catch (e) {
         // Fallback: build a minimal local user so the app isn't stuck.
         _currentUser = User(
