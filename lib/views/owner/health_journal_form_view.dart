@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/pet_controller.dart';
 import '../../models/health_journal_model.dart';
@@ -14,7 +15,7 @@ class HealthJournalFormView extends StatefulWidget {
 }
 
 class _HealthJournalFormViewState extends State<HealthJournalFormView> {
-  static const _purple = Color(0xFF8A2BE2);
+  
   static const _availableSymptoms = [
     'Lethargic',
     'Vomiting',
@@ -59,11 +60,11 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text(
+            content: Text(
               'Health journal entry saved successfully!',
-              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
-            backgroundColor: _purple,
+            backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
@@ -76,12 +77,11 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
         title: const Text(
           'Add Health Journal Entry',
           style: TextStyle(
-            fontFamily: 'Poppins',
             color: Colors.black,
             fontWeight: FontWeight.w600,
             fontSize: 16,
@@ -113,7 +113,7 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                   child: InputDecorator(
                     decoration: InputDecoration(
                       labelText: 'Date',
-                      prefixIcon: const Icon(Icons.calendar_today, size: 18, color: _purple),
+                      prefixIcon: Icon(Icons.calendar_today, size: 18, color: AppColors.primary),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
@@ -127,14 +127,13 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                     child: Text(
                       DateFormat('EEEE, MMM dd, yyyy').format(_selectedDate),
                       style: const TextStyle(
-                        fontFamily: 'Poppins',
                         fontSize: 14,
                         color: Colors.black,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Symptom Tags Section
                 Column(
@@ -142,12 +141,11 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.local_hospital_outlined, size: 18, color: _purple),
+                        Icon(Icons.local_hospital_outlined, size: 18, color: AppColors.primary),
                         const SizedBox(width: 8),
                         const Text(
                           'Symptoms',
                           style: TextStyle(
-                            fontFamily: 'Poppins',
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                             color: Colors.black,
@@ -165,7 +163,6 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                           label: Text(
                             symptom,
                             style: TextStyle(
-                              fontFamily: 'Poppins',
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                               color: isSelected ? Colors.white : Colors.black,
@@ -181,8 +178,8 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                               }
                             });
                           },
-                          backgroundColor: const Color(0xFFF8F9FA),
-                          selectedColor: _purple,
+                          backgroundColor: AppColors.lightSurface,
+                          selectedColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                             side: const BorderSide(
@@ -196,7 +193,7 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Observations TextField
                 Column(
@@ -204,12 +201,11 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.notes_outlined, size: 18, color: _purple),
+                        Icon(Icons.notes_outlined, size: 18, color: AppColors.primary),
                         const SizedBox(width: 8),
-                        const Text(
+                        Text(
                           'Observations',
                           style: TextStyle(
-                            fontFamily: 'Poppins',
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                             color: Colors.black,
@@ -223,7 +219,6 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                       decoration: InputDecoration(
                         hintText: 'Describe any specific observations about your pet\'s health and recovery progress...',
                         hintStyle: TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 13,
                           color: Colors.grey.shade400,
                         ),
@@ -237,13 +232,13 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: _purple, width: 2),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
                         ),
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.all(16),
                       ),
-                      style: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
+                      style: const TextStyle(fontSize: 13),
                       onSaved: (value) => _observations = value ?? '',
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -254,20 +249,19 @@ class _HealthJournalFormViewState extends State<HealthJournalFormView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // Submit Button
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _purple,
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: const Text(
                     'Save Entry',
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: Colors.white,

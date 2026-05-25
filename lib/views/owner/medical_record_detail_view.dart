@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:intl/intl.dart';
 import '../../models/medical_record_model.dart';
 
@@ -10,19 +11,18 @@ class MedicalRecordDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Record Details',
           style: TextStyle(
-            color: Color(0xFF333333),
+            color: AppColors.darkText,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
-          ),
+            ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF333333)),
+        iconTheme: const IconThemeData(color: AppColors.darkText),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -50,24 +50,23 @@ class MedicalRecordDetailView extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF8A2BE2).withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.health_and_safety_outlined,
                       size: 40,
-                      color: Color(0xFF8A2BE2),
+                      color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Text(
                     record.diagnosis,
-                    style: const TextStyle(
-                      color: Color(0xFF333333),
+                    style: TextStyle(
+                      color: AppColors.darkText,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
-                    ),
+                      ),
                   ),
                   if (record.vaccinationDate != null)
                     Padding(
@@ -94,14 +93,13 @@ class MedicalRecordDetailView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Clinical Notes',
                     style: TextStyle(
-                      color: Color(0xFF333333),
+                      color: AppColors.darkText,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
-                    ),
+                      ),
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -117,48 +115,48 @@ class MedicalRecordDetailView extends StatelessWidget {
                         if (record.doctorNotes?.isNotEmpty ?? false) ...[
                           const Text(
                             'Doctor Notes',
-                            style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             record.doctorNotes!,
-                            style: const TextStyle(color: Color(0xFF333333), fontSize: 14, height: 1.5),
+                            style: TextStyle(color: AppColors.darkText, fontSize: 14, height: 1.5),
                           ),
                           const SizedBox(height: 16),
                         ],
                         if (record.medicationsPrescribed?.isNotEmpty ?? false) ...[
                           const Text(
                             'Medications',
-                            style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             record.medicationsPrescribed!.join(', '),
-                            style: const TextStyle(color: Color(0xFF333333), fontSize: 14, height: 1.5),
+                            style: TextStyle(color: AppColors.darkText, fontSize: 14, height: 1.5),
                           ),
                           const SizedBox(height: 16),
                         ],
                         if (record.followUpInstructions?.isNotEmpty ?? false) ...[
                           const Text(
                             'Follow-up Instructions',
-                            style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             record.followUpInstructions!,
-                            style: const TextStyle(color: Color(0xFF333333), fontSize: 14, height: 1.5),
+                            style: TextStyle(color: AppColors.darkText, fontSize: 14, height: 1.5),
                           ),
                           const SizedBox(height: 16),
                         ],
                         if (record.treatment?.isNotEmpty ?? false) ...[
                           const Text(
                             'Treatment',
-                            style: TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             record.treatment!,
-                            style: const TextStyle(color: Color(0xFF333333), fontSize: 14, height: 1.5),
+                            style: TextStyle(color: AppColors.darkText, fontSize: 14, height: 1.5),
                           ),
                         ],
                         if ((record.doctorNotes?.isEmpty ?? true) &&
@@ -174,32 +172,31 @@ class MedicalRecordDetailView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   if (record.nextDueDate != null) ...[
-                    const Text(
+                    Text(
                       'Next Due Date',
                       style: TextStyle(
-                        color: Color(0xFF333333),
+                        color: AppColors.darkText,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Poppins',
-                      ),
+                        ),
                     ),
                     const SizedBox(height: 12),
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8A2BE2).withValues(alpha: 0.05),
-                        border: Border.all(color: const Color(0xFF8A2BE2).withValues(alpha: 0.3)),
+                        color: AppColors.primary.withValues(alpha: 0.05),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.event_available, color: Color(0xFF8A2BE2)),
+                          Icon(Icons.event_available, color: AppColors.primary),
                           const SizedBox(width: 12),
                           Text(
                             DateFormat.yMMMMd().format(record.nextDueDate!),
-                            style: const TextStyle(
-                              color: Color(0xFF333333),
+                            style: TextStyle(
+                              color: AppColors.darkText,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -210,14 +207,13 @@ class MedicalRecordDetailView extends StatelessWidget {
                     const SizedBox(height: 24),
                   ],
                   if (record.attachmentUrl != null) ...[
-                    const Text(
+                    Text(
                       'Attachments',
                       style: TextStyle(
-                        color: Color(0xFF333333),
+                        color: AppColors.darkText,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Poppins',
-                      ),
+                        ),
                     ),
                     const SizedBox(height: 12),
                     Container(
@@ -242,10 +238,10 @@ class MedicalRecordDetailView extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Scan_Report.pdf',
                                   style: TextStyle(
-                                    color: Color(0xFF333333),
+                                    color: AppColors.darkText,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

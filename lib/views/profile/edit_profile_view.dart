@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
 
@@ -10,8 +11,8 @@ class EditProfileView extends StatefulWidget {
 }
 
 class _EditProfileViewState extends State<EditProfileView> {
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
@@ -36,7 +37,7 @@ class _EditProfileViewState extends State<EditProfileView> {
   InputDecoration _fieldDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(fontFamily: 'Poppins', color: Colors.grey),
+      labelStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
       filled: true,
       fillColor: Colors.white,
@@ -52,7 +53,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _purple, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -88,11 +89,11 @@ class _EditProfileViewState extends State<EditProfileView> {
               Text(
                 'Profile updated successfully!',
                 style: TextStyle(
-                    fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+                    fontWeight: FontWeight.w600),
               ),
             ],
           ),
-          backgroundColor: _purple,
+          backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(20),
           shape:
@@ -106,12 +107,11 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Edit Profile',
           style: TextStyle(
-            fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
             fontSize: 18,
             color: Colors.black,
@@ -136,15 +136,10 @@ class _EditProfileViewState extends State<EditProfileView> {
                 width: 88,
                 height: 88,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF8A2BE2), Color(0xFF6B21A8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: _purple.withValues(alpha: 0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       blurRadius: 16,
                       offset: const Offset(0, 6),
                     ),
@@ -161,7 +156,6 @@ class _EditProfileViewState extends State<EditProfileView> {
                       return Text(
                         initials,
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
                           fontSize: 30,
                           color: Colors.white,
@@ -171,11 +165,10 @@ class _EditProfileViewState extends State<EditProfileView> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
                 'Update your details below',
                 style: TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 13,
                   color: Colors.grey.shade500,
                 ),
@@ -186,7 +179,7 @@ class _EditProfileViewState extends State<EditProfileView> {
               TextFormField(
                 controller: _nameController,
                 decoration: _fieldDecoration('Full Name', Icons.person_outline),
-                style: const TextStyle(fontFamily: 'Poppins'),
+                style: const TextStyle(),
                 textCapitalization: TextCapitalization.words,
                 validator: (v) =>
                     v == null || v.trim().isEmpty ? 'Name is required' : null,
@@ -198,7 +191,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 controller: _phoneController,
                 decoration:
                     _fieldDecoration('Phone Number', Icons.phone_outlined),
-                style: const TextStyle(fontFamily: 'Poppins'),
+                style: const TextStyle(),
                 keyboardType: TextInputType.phone,
                 validator: (v) => v == null || v.trim().isEmpty
                     ? 'Phone number is required'
@@ -212,20 +205,19 @@ class _EditProfileViewState extends State<EditProfileView> {
                 builder: (context, auth, _) => Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF3E8FF),
+                    color: AppColors.chipBg,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, color: _purple, size: 18),
+                      Icon(Icons.info_outline, color: AppColors.primary, size: 18),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Email (${auth.currentUser?.email ?? ''}) cannot be changed.',
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
+                          style: TextStyle(
                             fontSize: 12.5,
-                            color: _purple,
+                            color: AppColors.primary,
                           ),
                         ),
                       ),
@@ -258,8 +250,8 @@ class _EditProfileViewState extends State<EditProfileView> {
             child: ElevatedButton(
               onPressed: _isSaving ? null : _save,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _purple,
-                disabledBackgroundColor: _lightPurple,
+                backgroundColor: AppColors.primary,
+                disabledBackgroundColor: AppColors.chipBg,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -277,7 +269,6 @@ class _EditProfileViewState extends State<EditProfileView> {
                   : const Text(
                       'Save Changes',
                       style: TextStyle(
-                        fontFamily: 'Poppins',
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                         color: Colors.white,

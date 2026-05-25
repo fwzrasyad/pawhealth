@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/pet_controller.dart';
@@ -13,8 +14,8 @@ class MyPetsListView extends StatefulWidget {
 }
 
 class _MyPetsListViewState extends State<MyPetsListView> {
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   @override
   void initState() {
@@ -33,56 +34,163 @@ class _MyPetsListViewState extends State<MyPetsListView> {
     final petController = context.watch<PetController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text(
-          'My Pets',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
-            fontSize: 22,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddEditPetView()),
-          );
-        },
-        backgroundColor: _purple,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      backgroundColor: AppColors.lightSurface,
+      appBar: AppDecor.tabAppBar(title: 'My Pets'),
       body: petController.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: _purple),
+          ? Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
             )
-          : petController.pets.isEmpty
-              ? _buildEmptyState(context)
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                  itemCount: petController.pets.length,
-                  itemBuilder: (context, index) {
-                    final pet = petController.pets[index];
-                    return _PetCard(
-                      pet: pet,
-                      onTap: () {
-                        petController.selectPet(pet);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const PetDetailView(),
-                          ),
-                        );
-                      },
-                    );
-                  },
+          : Column(
+              children: [
+                _buildSummaryChips(petController.pets.length),
+                Expanded(
+                  child: petController.pets.isEmpty
+                      ? _buildEmptyState(context)
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                          itemCount: petController.pets.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == petController.pets.length) {
+                              return _buildAddNewPetRow(context);
+                            }
+                            final pet = petController.pets[index];
+                            return _PetCard(
+                              pet: pet,
+                              onTap: () {
+                                petController.selectPet(pet);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const PetDetailView(),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                 ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildSummaryChips(int totalPets) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFEDE8F8)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    totalPets.toString(),
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 22,
+                      color: Color(0xFF7C3AED),
+                    ),
+                  ),
+                  const Text(
+                    'Total pets',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
+                      color: Color(0xFF9B8CB8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFEDE8F8)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    totalPets.toString(),
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 22,
+                      color: Color(0xFF7C3AED),
+                    ),
+                  ),
+                  const Text(
+                    'Healthy pets',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
+                      color: Color(0xFF9B8CB8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddNewPetRow(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AddEditPetView()),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFDDD8F5), width: 2),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F5FF),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.add, color: Color(0xFFC4B5FD), size: 22),
+            ),
+            const SizedBox(width: 16),
+            const Text(
+              "Add a new pet",
+              style: TextStyle(
+                fontFamily: 'Figtree',
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                color: Color(0xFF9B8CB8),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -93,29 +201,34 @@ class _MyPetsListViewState extends State<MyPetsListView> {
         children: [
           Container(
             padding: const EdgeInsets.all(28),
-            decoration: const BoxDecoration(
-              color: _lightPurple,
-              shape: BoxShape.circle,
+            decoration: BoxDecoration(
+              color: AppColors.chipBg,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.pets, size: 60, color: _purple),
+            child: Icon(Icons.pets, size: 60, color: AppColors.primary),
           ),
           const SizedBox(height: 24),
           const Text(
             'No pets yet!',
             style: TextStyle(
+              fontFamily: 'Figtree',
               fontSize: 20,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Poppins',
-              color: Colors.black,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A0F2E),
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Tap the + button to add your first pet.',
+          const Text(
+            'Tap the button below to add your first pet.',
             style: TextStyle(
-              color: Colors.grey.shade500,
-              fontFamily: 'Poppins',
+              fontFamily: 'Figtree',
+              color: Color(0xFF9B8CB8),
             ),
+          ),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _buildAddNewPetRow(context),
           ),
         ],
       ),
@@ -129,8 +242,8 @@ class _PetCard extends StatelessWidget {
 
   const _PetCard({required this.pet, required this.onTap});
 
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   String get _emoji {
     switch (pet.species.toLowerCase()) {
@@ -144,38 +257,34 @@ class _PetCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMale = pet.gender.toLowerCase() == 'male';
+    final genderBg = isMale ? const Color(0xFFEDE8F8) : const Color(0xFFFDF2F8);
+    final genderColor = isMale ? const Color(0xFF534AB7) : const Color(0xFF993556);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFEDE8F8)),
         ),
         child: Row(
           children: [
-            // Circular Avatar
             Container(
-              width: 68,
-              height: 68,
-              decoration: const BoxDecoration(
-                color: _lightPurple,
-                shape: BoxShape.circle,
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EFFF),
+                borderRadius: BorderRadius.circular(14),
               ),
               child: Center(
-                child: Text(_emoji, style: const TextStyle(fontSize: 32)),
+                child: Text(_emoji, style: const TextStyle(fontSize: 24)),
               ),
             ),
             const SizedBox(width: 16),
-            // Pet Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,44 +292,49 @@ class _PetCard extends StatelessWidget {
                   Text(
                     pet.name,
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
-                      color: Colors.black,
+                      fontFamily: 'Figtree',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A0F2E),
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
-                    '${pet.species} • ${pet.breed}',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 13,
-                      fontFamily: 'Poppins',
+                    '${pet.species} · ${pet.breed} · ${pet.gender} · ${pet.age} yrs',
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF9B8CB8),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _lightPurple,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      pet.gender,
-                      style: const TextStyle(
-                        color: _purple,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: genderBg,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          pet.gender,
+                          style: TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: genderColor,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            const Icon(Icons.chevron_right, color: Color(0xFFC4B5FD), size: 20),
           ],
         ),
       ),

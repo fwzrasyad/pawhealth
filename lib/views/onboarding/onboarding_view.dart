@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import '../auth/login_view.dart';
 
 class OnboardingView extends StatefulWidget {
@@ -9,8 +10,6 @@ class OnboardingView extends StatefulWidget {
 }
 
 class _OnboardingViewState extends State<OnboardingView> {
-  static const _purple = Color(0xFF8A2BE2);
-
   final _pageController = PageController();
   int _currentPage = 0;
 
@@ -18,7 +17,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     _OnboardingSlide(
       emoji: '🔬',
       color: Color(0xFFEDE0FF),
-      iconBg: Color(0xFFD4BBFF),
+      iconBg: AppColors.chipBg,
       title: 'Smart AI Analyzer',
       subtitle:
           'Simply snap a photo of your pet\'s visible symptoms. Our AI engine delivers a preliminary health assessment in seconds — helping you know when it\'s time to see a vet.',
@@ -26,7 +25,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     _OnboardingSlide(
       emoji: '📅',
       color: Color(0xFFE0F2FF),
-      iconBg: Color(0xFFBAE0FF),
+      iconBg: Color(0xFFDCEEFF),
       title: 'Seamless Scheduling',
       subtitle:
           'Browse top-rated veterinarians, check real-time availability, and book an appointment — all without a single phone call.',
@@ -34,7 +33,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     _OnboardingSlide(
       emoji: '📋',
       color: Color(0xFFE0FFF4),
-      iconBg: Color(0xFFB3F5DC),
+      iconBg: Color(0xFFCCF5E3),
       title: 'Centralized Health Records',
       subtitle:
           'Keep every vaccine, prescription, and medical document organized in one secure place. Access your pet\'s full history anytime, anywhere.',
@@ -70,7 +69,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     final isLast = _currentPage == _slides.length - 1;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.lightSurface,
       body: SafeArea(
         child: Column(
           children: [
@@ -83,11 +82,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                   onPressed: _goToLogin,
                   child: Text(
                     'Skip',
-                    style: TextStyle(
-                      color: Colors.grey.shade500,
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                    ),
+                    style: AppFonts.body(color: AppColors.metaText, fontSize: 14),
                   ),
                 ),
               ),
@@ -106,51 +101,44 @@ class _OnboardingViewState extends State<OnboardingView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Illustration
+                        // Illustration — rounded square
                         Container(
                           width: 200,
                           height: 200,
                           decoration: BoxDecoration(
                             color: slide.color,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(40),
                           ),
                           child: Center(
                             child: Container(
-                              width: 130,
-                              height: 130,
+                              width: 120,
+                              height: 120,
                               decoration: BoxDecoration(
                                 color: slide.iconBg,
-                                shape: BoxShape.circle,
+                                borderRadius: BorderRadius.circular(24),
                               ),
                               child: Center(
                                 child: Text(
                                   slide.emoji,
-                                  style: const TextStyle(fontSize: 60),
+                                  style: const TextStyle(fontSize: 56),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 48),
+                        SizedBox(height: 48),
 
                         Text(
                           slide.title,
-                          style: const TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
-                            color: Colors.black,
-                          ),
+                          style: AppFonts.headline(fontSize: 26),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           slide.subtitle,
-                          style: TextStyle(
+                          style: AppFonts.body(
                             fontSize: 15,
-                            fontFamily: 'Poppins',
-                            color: Colors.grey.shade500,
-                            height: 1.6,
+                            color: AppColors.mutedText,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -161,7 +149,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
 
-            // Page dots
+            // Page dots — rounded rectangles
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(_slides.length, (i) {
@@ -172,7 +160,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                   width: active ? 24 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: active ? _purple : Colors.grey.shade300,
+                    color: active ? AppColors.primary : AppColors.navInactive,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 );
@@ -181,28 +169,17 @@ class _OnboardingViewState extends State<OnboardingView> {
 
             const SizedBox(height: 40),
 
-            // Bottom buttons
+            // Bottom button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _next,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _purple,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
-                  ),
+                  style: AppDecor.ctaButton(),
                   child: Text(
                     isLast ? 'Get Started' : 'Next',
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
+                    style: AppFonts.button(),
                   ),
                 ),
               ),

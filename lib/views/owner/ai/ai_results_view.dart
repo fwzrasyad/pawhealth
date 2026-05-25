@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import '../booking/book_appointment_view.dart';
 
 class AIResultsView extends StatelessWidget {
@@ -14,8 +15,8 @@ class AIResultsView extends StatelessWidget {
     required this.confidence,
   });
 
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   // Data Map for the 6 labels
   static const Map<String, Map<String, String>> diseaseData = {
@@ -59,17 +60,17 @@ class AIResultsView extends StatelessWidget {
     final String preFilledReason = "PawHealth AI detected a $confidencePercentage% probability of $label. Seeking clinical confirmation and treatment.";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
-        backgroundColor: _purple,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Analysis Results',
-          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
+          style: AppFonts.bodyBold(fontSize: 17),
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.darkText, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -110,7 +111,6 @@ class AIResultsView extends StatelessWidget {
                             Text(
                               label,
                               style: const TextStyle(
-                                fontFamily: 'Poppins',
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
@@ -119,7 +119,6 @@ class AIResultsView extends StatelessWidget {
                             Text(
                               'Confidence: $confidencePercentage%',
                               style: TextStyle(
-                                fontFamily: 'Poppins',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.grey.shade600,
@@ -150,12 +149,12 @@ class AIResultsView extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))
                       ]
                     ),
                     child: Text(
                       data['Information']!,
-                      style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Colors.black87, height: 1.5),
+                      style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
                     ),
                   ),
                   
@@ -169,12 +168,12 @@ class AIResultsView extends StatelessWidget {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))
                       ]
                     ),
                     child: Text(
                       data['Care Steps']!,
-                      style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Colors.black87, height: 1.5),
+                      style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
                     ),
                   ),
                 ],
@@ -188,17 +187,8 @@ class AIResultsView extends StatelessWidget {
               margin: const EdgeInsets.fromLTRB(24, 0, 24, 40),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isHealthy 
-                      ? [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)]
-                      : [const Color(0xFFFFF3E0), const Color(0xFFFFE0B2)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: isHealthy ? const Color(0xFFC8E6C9) : const Color(0xFFFFF3E0),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
-                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,7 +204,6 @@ class AIResultsView extends StatelessWidget {
                       Text(
                         isHealthy ? 'Recommendation' : 'Urgent Action Required',
                         style: TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: isHealthy ? Colors.green.shade900 : Colors.deepOrange.shade900,
@@ -228,7 +217,6 @@ class AIResultsView extends StatelessWidget {
                         ? 'Continue your standard daily care. Consider booking a routine checkup to keep your pet in top shape.'
                         : 'A potential skin condition or parasite has been detected. We highly recommend booking an appointment with a clinic for proper diagnosis and treatment.',
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 13,
                       color: isHealthy ? Colors.green.shade900 : Colors.deepOrange.shade900,
                       height: 1.5,
@@ -257,7 +245,6 @@ class AIResultsView extends StatelessWidget {
                       child: Text(
                         isHealthy ? 'Book Routine Checkup' : 'Find a Clinic Now',
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           fontSize: 15,
@@ -280,16 +267,15 @@ class AIResultsView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _lightPurple,
+            color: AppColors.chipBg,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: _purple, size: 18),
+          child: Icon(icon, color: AppColors.primary, size: 18),
         ),
         const SizedBox(width: 12),
         Text(
           title,
           style: const TextStyle(
-            fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
             fontSize: 16,
             color: Colors.black87,

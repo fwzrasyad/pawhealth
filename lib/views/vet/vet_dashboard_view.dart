@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/vet_controller.dart';
 import '../../../models/appointment_model.dart';
+import '../../utils/constants.dart';
 import 'manage_appointments_view.dart';
 import 'manage_availability_view.dart';
 import 'vet_appointment_details_view.dart';
@@ -40,12 +41,15 @@ class _VetDashboardViewState extends State<VetDashboardView> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       body: screens[_selectedIndex],
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, -4))],
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
         ),
         child: SafeArea(
           child: Padding(
@@ -74,8 +78,6 @@ class _NavItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  static const _purple = Color(0xFF8A2BE2);
-
   const _NavItem({required this.index, required this.selected, required this.icon, required this.activeIcon, required this.label, required this.onTap});
 
   @override
@@ -88,14 +90,9 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              decoration: BoxDecoration(color: selected ? const Color(0xFFF3E8FF) : Colors.transparent, borderRadius: BorderRadius.circular(20)),
-              child: Icon(selected ? activeIcon : icon, color: selected ? _purple : Colors.grey.shade500, size: 24),
-            ),
-            const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontFamily: 'Poppins', fontSize: 11, fontWeight: selected ? FontWeight.bold : FontWeight.normal, color: selected ? _purple : Colors.grey.shade500)),
+            Icon(selected ? activeIcon : icon, color: selected ? AppColors.primary : AppColors.navInactive, size: 24),
+            SizedBox(height: 4),
+            Text(label, style: AppFonts.dmSans(fontSize: 11, fontWeight: selected ? FontWeight.w700 : FontWeight.w400, color: selected ? AppColors.primary : AppColors.navInactive)),
           ],
         ),
       ),
@@ -107,9 +104,6 @@ class _NavItem extends StatelessWidget {
 
 class _VetHomeContent extends StatelessWidget {
   const _VetHomeContent();
-
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
 
   String _greeting() {
     final h = DateTime.now().hour;
@@ -138,17 +132,17 @@ class _VetHomeContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_greeting(), style: TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Colors.grey.shade500)),
-                      const SizedBox(height: 2),
-                      Text(firstName, style: const TextStyle(fontFamily: 'Poppins', fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
-                      Text(todayFmt, style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade500)),
+                      Text(_greeting(), style: AppFonts.caption(fontSize: 13, color: AppColors.metaText)),
+                      SizedBox(height: 2),
+                      Text(firstName, style: AppFonts.headline(fontSize: 26)),
+                      Text(todayFmt, style: AppFonts.caption(fontSize: 13, color: AppColors.metaText)),
                     ],
                   ),
                 ),
                 Container(
                   width: 48, height: 48,
-                  decoration: const BoxDecoration(color: _lightPurple, shape: BoxShape.circle),
-                  child: const Icon(Icons.notifications_outlined, color: _purple, size: 22),
+                  decoration: AppDecor.squareChip(),
+                  child: Icon(Icons.notifications_outlined, color: AppColors.primary, size: 22),
                 ),
               ],
             ),
@@ -158,31 +152,31 @@ class _VetHomeContent extends StatelessWidget {
             // Quick Stats
             Row(
               children: [
-                Expanded(child: _StatCard(icon: Icons.calendar_today, label: "Today's\nAppointments", value: '${vc.todaysAppointments.length}', color: _purple, bg: _lightPurple)),
+                Expanded(child: _StatCard(icon: Icons.calendar_today, label: "Today's\nAppointments", value: '${vc.todaysAppointments.length}', color: AppColors.primary, bg: AppColors.chipBg)),
                 const SizedBox(width: 14),
-                Expanded(child: _StatCard(icon: Icons.pending_actions, label: 'Pending\nRequests', value: '${vc.pendingAppointments.length}', color: const Color(0xFFEA580C), bg: const Color(0xFFFFF7ED))),
+                Expanded(child: _StatCard(icon: Icons.pending_actions, label: 'Pending\nRequests', value: '${vc.pendingAppointments.length}', color: AppColors.pendingText, bg: AppColors.pendingBg)),
               ],
             ),
 
             const SizedBox(height: 28),
 
             // Today's Schedule
-            const Text("Today's Schedule", style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+            Text("Today's Schedule", style: AppFonts.fraunces(fontSize: 18)),
             const SizedBox(height: 14),
 
             if (vc.todaysAppointments.isEmpty)
               Container(
                 padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 3))]),
+                decoration: AppDecor.card(),
                 child: Row(
                   children: [
-                    const Text('🎉', style: TextStyle(fontSize: 28)),
+                    Text('🎉', style: TextStyle(fontSize: 28)),
                     const SizedBox(width: 14),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('No appointments today!', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 14)),
-                        Text('Enjoy your day off.', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500)),
+                        Text('No appointments today!', style: AppFonts.bodyBold()),
+                        Text('Enjoy your day off.', style: AppFonts.caption(color: AppColors.metaText)),
                       ],
                     ),
                   ],
@@ -196,16 +190,16 @@ class _VetHomeContent extends StatelessWidget {
                 return _TimelineCard(appointment: appt, isLast: isLast);
               }),
 
-            const SizedBox(height: 28),
+            SizedBox(height: 28),
 
             // Pending Requests Preview
             Row(
               children: [
-                const Text('Pending Requests', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                Text('Pending Requests', style: AppFonts.fraunces(fontSize: 18)),
                 const Spacer(),
                 GestureDetector(
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageAppointmentsView())),
-                  child: Text('See all', style: const TextStyle(fontFamily: 'Poppins', color: _purple, fontWeight: FontWeight.w600, fontSize: 13)),
+                  child: Text('See all', style: AppFonts.dmSans(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13)),
                 ),
               ],
             ),
@@ -213,8 +207,8 @@ class _VetHomeContent extends StatelessWidget {
             if (vc.pendingAppointments.isEmpty)
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 3))]),
-                child: Center(child: Text('No pending requests', style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade500, fontSize: 14))),
+                decoration: AppDecor.card(),
+                child: Center(child: Text('No pending requests', style: AppFonts.body(color: AppColors.metaText))),
               )
             else
               ...vc.pendingAppointments.take(2).map((a) => _PendingPreviewCard(appointment: a)),
@@ -222,15 +216,15 @@ class _VetHomeContent extends StatelessWidget {
             const SizedBox(height: 28),
 
             // History Section
-            const Text('History', style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+            Text('History', style: AppFonts.fraunces(fontSize: 18)),
             const SizedBox(height: 6),
-            Text('Completed appointments', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade500)),
+            Text('Completed appointments', style: AppFonts.caption(color: AppColors.metaText)),
             const SizedBox(height: 14),
             if (vc.completedAppointments.isEmpty)
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 3))]),
-                child: Center(child: Text('No completed appointments yet', style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade500, fontSize: 14))),
+                decoration: AppDecor.card(),
+                child: Center(child: Text('No completed appointments yet', style: AppFonts.body(color: AppColors.metaText))),
               )
             else
               ...vc.completedAppointments.take(5).map((a) => _HistoryCard(appointment: a)),
@@ -254,21 +248,21 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
+      decoration: AppDecor.card(radius: 18),
       child: Row(
         children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: bg, shape: BoxShape.circle), child: Icon(icon, color: color, size: 20)),
-          const SizedBox(width: 12),
+          Container(
+            width: 40, height: 40,
+            decoration: AppDecor.squareChip(color: bg),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(value, style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 24, color: color)),
-                Text(label, style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: Colors.grey.shade500, height: 1.3)),
+                Text(value, style: AppFonts.fraunces(fontSize: 24, color: color)),
+                Text(label, style: AppFonts.caption(fontSize: 11, color: AppColors.metaText)),
               ],
             ),
           ),
@@ -284,8 +278,6 @@ class _TimelineCard extends StatelessWidget {
 
   const _TimelineCard({required this.appointment, required this.isLast});
 
-  static const _purple = Color(0xFF8A2BE2);
-
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
@@ -297,9 +289,15 @@ class _TimelineCard extends StatelessWidget {
             width: 40,
             child: Column(
               children: [
-                Container(width: 12, height: 12, decoration: const BoxDecoration(color: _purple, shape: BoxShape.circle)),
+                Container(
+                  width: 12, height: 12,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
                 if (!isLast)
-                  Expanded(child: Container(width: 2, color: const Color(0xFFE8D5FF))),
+                  Expanded(child: Container(width: 2, color: AppColors.cardBorder)),
               ],
             ),
           ),
@@ -312,24 +310,20 @@ class _TimelineCard extends StatelessWidget {
               child: Container(
                 margin: EdgeInsets.only(bottom: isLast ? 0 : 14),
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
-                ),
+                decoration: AppDecor.card(),
                 child: Row(
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(DateFormat('h:mm a').format(appointment.timeSlot), style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 14, color: _purple)),
-                        const SizedBox(height: 4),
-                        Text(appointment.petName, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black)),
-                        Text(appointment.reason, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(DateFormat('h:mm a').format(appointment.timeSlot), style: AppFonts.bodyBold(color: AppColors.primary)),
+                        SizedBox(height: 4),
+                        Text(appointment.petName, style: AppFonts.fraunces(fontSize: 15)),
+                        Text(appointment.reason, style: AppFonts.caption(color: AppColors.metaText), maxLines: 1, overflow: TextOverflow.ellipsis),
                       ],
                     ),
                     const Spacer(),
-                    const Icon(Icons.chevron_right, color: Colors.grey),
+                    Icon(Icons.chevron_right, color: AppColors.navInactive),
                   ],
                 ),
               ),
@@ -350,31 +344,34 @@ class _PendingPreviewCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VetAppointmentDetailsView(appointment: appointment))),
       child: Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFDE68A)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2))],
-      ),
-      child: Row(
-        children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFFFFF7ED), shape: BoxShape.circle), child: const Icon(Icons.pending_actions, color: Color(0xFFEA580C), size: 18)),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${appointment.petName} – ${appointment.reason}', style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black), maxLines: 1, overflow: TextOverflow.ellipsis),
-                Text(DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot), style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500)),
-              ],
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFDE68A)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36, height: 36,
+              decoration: AppDecor.squareChip(color: AppColors.pendingBg),
+              child: Icon(Icons.pending_actions, color: AppColors.pendingText, size: 18),
             ),
-          ),
-          const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
-        ],
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${appointment.petName} – ${appointment.reason}', style: AppFonts.bodyBold(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot), style: AppFonts.caption(color: AppColors.metaText)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: AppColors.navInactive, size: 18),
+          ],
+        ),
       ),
-    ),
     );
   }
 }
@@ -391,31 +388,34 @@ class _HistoryCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFFBBF7D0)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2))],
         ),
         child: Row(
           children: [
-            Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Color(0xFFF0FDF4), shape: BoxShape.circle), child: const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 18)),
-            const SizedBox(width: 12),
+            Container(
+              width: 36, height: 36,
+              decoration: AppDecor.squareChip(color: AppColors.completedBg),
+              child: Icon(Icons.check_circle, color: AppColors.completedText, size: 18),
+            ),
+            SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(appointment.petName, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black)),
-                  Text(DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot), style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500)),
+                  Text(appointment.petName, style: AppFonts.fraunces(fontSize: 13)),
+                  Text(DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot), style: AppFonts.caption(color: AppColors.metaText)),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: const Color(0xFFF0FDF4), borderRadius: BorderRadius.circular(8)),
-              child: const Text('Completed', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 10, color: Color(0xFF166534))),
+              decoration: BoxDecoration(color: AppColors.completedBg, borderRadius: BorderRadius.circular(8)),
+              child: Text('Completed', style: AppFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 10, color: AppColors.completedText)),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
+            Icon(Icons.chevron_right, color: AppColors.navInactive, size: 18),
           ],
         ),
       ),

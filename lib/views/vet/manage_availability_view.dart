@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/vet_controller.dart';
 
@@ -11,8 +12,8 @@ class ManageAvailabilityView extends StatefulWidget {
 }
 
 class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   String _selectedDay = VetController.dayNames.first; // "Monday"
 
@@ -37,12 +38,12 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
     final vc = context.watch<VetController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: widget.embeddedMode
           ? null
           : AppBar(
               title: const Text('Manage Availability',
-                  style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.black)),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
               backgroundColor: Colors.transparent,
               elevation: 0,
               iconTheme: const IconThemeData(color: Colors.black),
@@ -58,10 +59,10 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
                 children: [
                   if (widget.embeddedMode)
                     const Text('Weekly Schedule',
-                        style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black)),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black)),
                   if (widget.embeddedMode) const SizedBox(height: 4),
                   Text('Set your recurring availability for each day',
-                      style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade500)),
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
                 ],
               ),
             ),
@@ -91,7 +92,7 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           margin: const EdgeInsets.symmetric(horizontal: 2),
                           decoration: BoxDecoration(
-                            color: selected ? _purple : Colors.transparent,
+                            color: selected ? AppColors.primary : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -99,21 +100,20 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
                               Text(
                                 day.substring(0, 3),
                                 style: TextStyle(
-                                  fontFamily: 'Poppins',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                   color: selected ? Colors.white : Colors.grey.shade600,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Container(
                                 width: 6,
                                 height: 6,
                                 decoration: BoxDecoration(
                                   color: selected
                                       ? Colors.white
-                                      : (hasSlots ? _purple : Colors.grey.shade300),
-                                  shape: BoxShape.circle,
+                                      : (hasSlots ? AppColors.primary : Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                             ],
@@ -126,7 +126,7 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // Day label + slot count
             Padding(
@@ -134,17 +134,17 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
               child: Row(
                 children: [
                   Text(_selectedDay,
-                      style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black)),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black)),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _lightPurple,
+                      color: AppColors.chipBg,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '${(vc.weeklySchedule[_selectedDay] ?? []).length} slots',
-                      style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 11, color: _purple),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: AppColors.primary),
                     ),
                   ),
                 ],
@@ -157,13 +157,13 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  Container(width: 12, height: 12, decoration: BoxDecoration(color: _purple, borderRadius: BorderRadius.circular(3))),
+                  Container(width: 12, height: 12, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(3))),
                   const SizedBox(width: 6),
-                  Text('Available', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: Colors.grey.shade600)),
+                  Text('Available', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                   const SizedBox(width: 16),
                   Container(width: 12, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(3))),
                   const SizedBox(width: 6),
-                  Text('Off', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: Colors.grey.shade600)),
+                  Text('Off', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
                 ],
               ),
             ),
@@ -189,10 +189,10 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: enabled ? _lightPurple : Colors.grey.shade100,
+                          color: enabled ? AppColors.chipBg : Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: enabled ? _purple : Colors.grey.shade300,
+                            color: enabled ? AppColors.primary : Colors.grey.shade300,
                             width: enabled ? 2 : 1,
                           ),
                         ),
@@ -203,16 +203,15 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
                               Icon(
                                 enabled ? Icons.check_circle : Icons.cancel_outlined,
                                 size: 14,
-                                color: enabled ? _purple : Colors.grey.shade400,
+                                color: enabled ? AppColors.primary : Colors.grey.shade400,
                               ),
-                              const SizedBox(width: 6),
+                              SizedBox(width: 6),
                               Text(
                                 _formatTime(slot),
                                 style: TextStyle(
-                                  fontFamily: 'Poppins',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: enabled ? _purple : Colors.grey.shade400,
+                                  color: enabled ? AppColors.primary : Colors.grey.shade400,
                                 ),
                               ),
                             ],
@@ -239,10 +238,10 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text(
                                 success ? '✓ Weekly schedule saved!' : '✗ Failed to save schedule',
-                                style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+                                style: const TextStyle(fontWeight: FontWeight.w600),
                                 textAlign: TextAlign.center,
                               ),
-                              backgroundColor: success ? _purple : Colors.red.shade600,
+                              backgroundColor: success ? AppColors.primary : Colors.red.shade600,
                               behavior: SnackBarBehavior.floating,
                               margin: const EdgeInsets.all(24),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -250,8 +249,8 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _purple,
-                    disabledBackgroundColor: _purple.withValues(alpha: 0.5),
+                    backgroundColor: AppColors.primary,
+                    disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
@@ -263,7 +262,7 @@ class _ManageAvailabilityViewState extends State<ManageAvailabilityView> {
                           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                         )
                       : const Text('Save Schedule',
-                          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
                 ),
               ),
             ),

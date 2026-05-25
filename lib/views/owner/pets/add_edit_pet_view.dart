@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/pet_controller.dart';
@@ -14,8 +15,8 @@ class AddEditPetView extends StatefulWidget {
 }
 
 class _AddEditPetViewState extends State<AddEditPetView> {
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   final _formKey = GlobalKey<FormState>();
   late final _nameController = TextEditingController();
@@ -58,7 +59,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
   InputDecoration _fieldDecoration(String label, {IconData? icon}) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(fontFamily: 'Poppins', color: Colors.grey),
+      labelStyle: const TextStyle(color: Colors.grey),
       prefixIcon: icon != null ? Icon(icon, color: Colors.grey) : null,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -70,7 +71,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _purple, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
       filled: true,
       fillColor: Colors.white,
@@ -113,9 +114,9 @@ class _AddEditPetViewState extends State<AddEditPetView> {
           content: Text(
             _isEditing ? '${pet.name}\'s profile updated!' : '${pet.name} added!',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
-          backgroundColor: _purple,
+          backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(24),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -128,15 +129,14 @@ class _AddEditPetViewState extends State<AddEditPetView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
         title: Text(
           _isEditing ? 'Edit Profile' : 'Add Pet',
           style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
-          ),
+            ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -166,9 +166,9 @@ class _AddEditPetViewState extends State<AddEditPetView> {
                         Container(
                           width: 110,
                           height: 110,
-                          decoration: const BoxDecoration(
-                            color: _lightPurple,
-                            shape: BoxShape.circle,
+                          decoration: BoxDecoration(
+                            color: AppColors.chipBg,
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           clipBehavior: Clip.hardEdge,
                           child: (imageUrl != null && imageUrl.isNotEmpty)
@@ -179,22 +179,22 @@ class _AddEditPetViewState extends State<AddEditPetView> {
                                     if (loadingProgress == null) return child;
                                     return const Center(child: CircularProgressIndicator());
                                   },
-                                  errorBuilder: (context, error, stackTrace) => const Center(
+                                  errorBuilder: (context, error, stackTrace) => Center(
                                     child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
                                   ),
                                 )
                               : Center(
-                                  child: Icon(Icons.pets, size: 50, color: _purple.withValues(alpha: 0.6)),
+                                  child: Icon(Icons.pets, size: 50, color: AppColors.primary.withValues(alpha: 0.6)),
                                 ),
                         ),
                         Container(
-                          decoration: const BoxDecoration(
-                            color: _purple,
-                            shape: BoxShape.circle,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: IconButton(
                             icon: controller.isLoading
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 14,
                                     height: 14,
                                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
@@ -206,8 +206,8 @@ class _AddEditPetViewState extends State<AddEditPetView> {
                                     if (!_isEditing) {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
-                                          content: Text('Please save the pet profile first before uploading a picture!', style: TextStyle(fontFamily: 'Poppins')),
-                                          backgroundColor: _purple,
+                                          content: Text('Please save the pet profile first before uploading a picture!', style: TextStyle()),
+                                          backgroundColor: AppColors.primary,
                                         ),
                                       );
                                       return;
@@ -221,13 +221,12 @@ class _AddEditPetViewState extends State<AddEditPetView> {
                   );
                 },
               ),
-              const SizedBox(height: 8),
-              const Center(
+              SizedBox(height: 8),
+              Center(
                 child: Text(
                   'Upload Photo',
                   style: TextStyle(
-                    color: _purple,
-                    fontFamily: 'Poppins',
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                   ),
@@ -239,7 +238,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
               TextFormField(
                 controller: _nameController,
                 decoration: _fieldDecoration('Pet Name', icon: Icons.badge_outlined),
-                style: const TextStyle(fontFamily: 'Poppins'),
+                style: const TextStyle(),
                 validator: (v) => v == null || v.isEmpty ? 'Please enter a name' : null,
               ),
               const SizedBox(height: 16),
@@ -248,7 +247,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
               DropdownButtonFormField<String>(
                 initialValue: _selectedSpecies,
                 decoration: _fieldDecoration('Species', icon: Icons.category_outlined),
-                style: const TextStyle(fontFamily: 'Poppins', color: Colors.black),
+                style: const TextStyle(color: Colors.black),
                 items: _species.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                 onChanged: (v) => setState(() => _selectedSpecies = v),
                 validator: (v) => v == null ? 'Please select a species' : null,
@@ -259,7 +258,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
               TextFormField(
                 controller: _breedController,
                 decoration: _fieldDecoration('Breed', icon: Icons.pets_outlined),
-                style: const TextStyle(fontFamily: 'Poppins'),
+                style: const TextStyle(),
                 validator: (v) => v == null || v.isEmpty ? 'Please enter a breed' : null,
               ),
               const SizedBox(height: 16),
@@ -269,7 +268,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
                 controller: _ageController,
                 keyboardType: TextInputType.number,
                 decoration: _fieldDecoration('Age (Years)', icon: Icons.cake_outlined),
-                style: const TextStyle(fontFamily: 'Poppins'),
+                style: const TextStyle(),
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Please enter age';
                   if (int.tryParse(v) == null) return 'Please enter a valid number';
@@ -282,7 +281,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
               DropdownButtonFormField<String>(
                 initialValue: _selectedGender,
                 decoration: _fieldDecoration('Gender', icon: Icons.transgender_outlined),
-                style: const TextStyle(fontFamily: 'Poppins', color: Colors.black),
+                style: const TextStyle(color: Colors.black),
                 items: _genders.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                 onChanged: (v) => setState(() => _selectedGender = v),
                 validator: (v) => v == null ? 'Please select a gender' : null,
@@ -294,7 +293,7 @@ class _AddEditPetViewState extends State<AddEditPetView> {
                 controller: _weightController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: _fieldDecoration('Weight (kg)', icon: Icons.monitor_weight_outlined),
-                style: const TextStyle(fontFamily: 'Poppins'),
+                style: const TextStyle(),
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Please enter weight';
                   if (double.tryParse(v) == null) return 'Please enter a valid number';
@@ -321,8 +320,8 @@ class _AddEditPetViewState extends State<AddEditPetView> {
         child: ElevatedButton(
           onPressed: _isSaving ? null : _save,
           style: ElevatedButton.styleFrom(
-            backgroundColor: _purple,
-            disabledBackgroundColor: _purple.withValues(alpha: 0.5),
+            backgroundColor: AppColors.primary,
+            disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
             minimumSize: const Size(double.infinity, 52),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             elevation: 0,
@@ -336,7 +335,6 @@ class _AddEditPetViewState extends State<AddEditPetView> {
               : Text(
                   _isEditing ? 'Save Changes' : 'Save Profile',
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: Colors.white,

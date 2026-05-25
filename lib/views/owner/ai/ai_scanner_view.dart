@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../services/ai_scanner_service.dart';
 import 'ai_results_view.dart';
@@ -19,8 +20,8 @@ class _AIScannerViewState extends State<AIScannerView> {
   bool _isModelLoaded = false;
   String? _errorMessage;
   
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   @override
   void initState() {
@@ -96,30 +97,18 @@ class _AIScannerViewState extends State<AIScannerView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        backgroundColor: _purple,
-        elevation: 0,
-        title: const Text(
-          'AI Symptom Analyzer',
-          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      backgroundColor: AppColors.lightSurface,
+      appBar: AppDecor.tabAppBar(title: 'AI Symptom Analyzer'),
       body: _isLoading 
-        ? const Center(
+        ? Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                CircularProgressIndicator(color: _purple),
+                CircularProgressIndicator(color: AppColors.primary),
                 SizedBox(height: 16),
                 Text(
                   "Analyzing scan...",
-                  style: TextStyle(fontFamily: 'Poppins', color: _purple, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
                 )
               ],
             ),
@@ -129,13 +118,12 @@ class _AIScannerViewState extends State<AIScannerView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.document_scanner_outlined, size: 80, color: _purple),
-                const SizedBox(height: 24),
+                Icon(Icons.document_scanner_outlined, size: 80, color: AppColors.primary),
+                SizedBox(height: 24),
                 const Text(
                   "Scan your pet's affected area",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'Poppins',
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -146,7 +134,6 @@ class _AIScannerViewState extends State<AIScannerView> {
                   "Our AI model will analyze the image to detect common skin conditions and parasites.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontFamily: 'Poppins',
                     fontSize: 14,
                     color: Colors.grey.shade600,
                   ),
@@ -171,7 +158,6 @@ class _AIScannerViewState extends State<AIScannerView> {
                           child: Text(
                             _errorMessage!,
                             style: TextStyle(
-                              fontFamily: 'Poppins',
                               color: Colors.red.shade900,
                               fontSize: 13,
                             ),
@@ -187,9 +173,9 @@ class _AIScannerViewState extends State<AIScannerView> {
                       child: ElevatedButton.icon(
                         onPressed: _isModelLoaded ? () => _pickImage(ImageSource.camera) : null,
                         icon: const Icon(Icons.camera_alt, color: Colors.white),
-                        label: const Text("Camera", style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white)),
+                        label: const Text("Camera", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _purple,
+                          backgroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
@@ -199,10 +185,10 @@ class _AIScannerViewState extends State<AIScannerView> {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _isModelLoaded ? () => _pickImage(ImageSource.gallery) : null,
-                        icon: const Icon(Icons.photo_library, color: _purple),
-                        label: const Text("Gallery", style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: _purple)),
+                        icon: Icon(Icons.photo_library, color: AppColors.primary),
+                        label: const Text("Gallery", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _lightPurple,
+                          backgroundColor: AppColors.chipBg,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -215,7 +201,7 @@ class _AIScannerViewState extends State<AIScannerView> {
                 if (!_isModelLoaded)
                   const Text(
                     "Loading AI Model...",
-                    style: TextStyle(fontFamily: 'Poppins', color: Colors.grey, fontSize: 12),
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
                   )
               ],
             ),

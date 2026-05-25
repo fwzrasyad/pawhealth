@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'controllers/auth_controller.dart';
@@ -9,6 +10,7 @@ import 'controllers/appointment_controller.dart';
 import 'controllers/smart_analyzer_controller.dart';
 import 'controllers/vet_controller.dart';
 import 'views/auth/auth_wrapper.dart';
+import 'utils/constants.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -41,7 +43,12 @@ class PawHealthApp extends StatelessWidget {
       title: 'PawHealth',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8A2BE2)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          surface: AppColors.lightSurface,
+        ),
+        scaffoldBackgroundColor: AppColors.lightSurface,
+        textTheme: GoogleFonts.figtreeTextTheme(),
         useMaterial3: true,
       ),
       // AuthWrapper decides whether to show Onboarding, OwnerDashboard, or

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
 import '../../models/user_model.dart';
+import '../../utils/constants.dart';
 import '../onboarding/onboarding_view.dart';
 import '../owner/owner_dashboard_view.dart';
 import '../vet/vet_home_view.dart';
@@ -20,8 +21,6 @@ import '../vet/vet_home_view.dart';
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
-  static const _accentPurple = Color(0xFF7A1EFE);
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
@@ -29,27 +28,29 @@ class AuthWrapper extends StatelessWidget {
     // ── Initializing ─────────────────────────────────────────────────────────
     // Show a clean splash/spinner while Firebase resolves the persisted session.
     if (auth.isInitializing) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
+      return Scaffold(
+        backgroundColor: AppColors.darkBg,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // App logo
-              _PawLogo(),
+              Image.asset(
+                'assets/pawhealth_logo.png',
+                width: 120,
+                height: 120,
+              ),
               SizedBox(height: 32),
               CircularProgressIndicator(
-                color: _accentPurple,
+                color: AppColors.primary,
                 strokeWidth: 3,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Text(
                 'PawHealth',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
+                style: AppFonts.fraunces(
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: _accentPurple,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -72,37 +73,5 @@ class AuthWrapper extends StatelessWidget {
 
     // Default: Pet Owner
     return const OwnerDashboardView();
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Internal widgets
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _PawLogo extends StatelessWidget {
-  const _PawLogo();
-
-  static const _accentPurple = Color(0xFF7A1EFE);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 96,
-      height: 96,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3E8FF),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: _accentPurple.withValues(alpha: 0.18),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: const Center(
-        child: Text('🐾', style: TextStyle(fontSize: 48)),
-      ),
-    );
   }
 }

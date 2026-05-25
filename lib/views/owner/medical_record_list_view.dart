@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../controllers/medical_record_controller.dart';
@@ -32,19 +33,18 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
     final records = controller.getRecordsByPet(pet.petId);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Health History',
           style: TextStyle(
-            color: Color(0xFF333333),
+            color: AppColors.darkText,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins', 
-          ),
+            ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF333333)),
+        iconTheme: IconThemeData(color: AppColors.darkText),
       ),
       body: Column(
         children: [
@@ -54,11 +54,11 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
             margin: const EdgeInsets.only(left: 20, right: 20, bottom: 10),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF8A2BE2),
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF8A2BE2).withValues(alpha: 0.3),
+                  color: AppColors.primary.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
@@ -71,7 +71,7 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
                   width: 64,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.pets,
@@ -90,8 +90,7 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
                           color: Colors.white,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          fontFamily: 'Poppins',
-                        ),
+                          ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -132,10 +131,9 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
               child: Text(
                 'Records Timeline',
                 style: TextStyle(
-                  color: const Color(0xFF333333).withValues(alpha: 0.8),
+                  color: AppColors.darkText.withValues(alpha: 0.8),
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
                   letterSpacing: 0.5,
                 ),
               ),
@@ -145,10 +143,10 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
           // Timeline List
           Expanded(
             child: records.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'No medical records found.',
-                      style: TextStyle(color: Color(0xFF333333), fontSize: 16),
+                      style: TextStyle(color: AppColors.darkText, fontSize: 16),
                     ),
                   )
                 : ListView.builder(
@@ -188,34 +186,33 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF8A2BE2).withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
+                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.medical_services_outlined,
-                                  color: Color(0xFF8A2BE2),
+                                  color: AppColors.primary,
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       record.diagnosis,
-                                      style: const TextStyle(
-                                        color: Color(0xFF333333),
+                                      style: TextStyle(
+                                        color: AppColors.darkText,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        fontFamily: 'Poppins',
-                                      ),
+                                        ),
                                     ),
                                     const SizedBox(height: 6),
                                     if (record.vaccinationDate != null)
                                       Text(
                                         'Date: ${DateFormat.yMMMd().format(record.vaccinationDate!)}',
                                         style: TextStyle(
-                                          color: const Color(0xFF333333).withValues(alpha: 0.6),
+                                          color: AppColors.darkText.withValues(alpha: 0.6),
                                           fontSize: 13,
                                         ),
                                       ),
@@ -229,7 +226,7 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
                                         decoration: BoxDecoration(
                                           color: isDueSoon
                                               ? Colors.orange.withValues(alpha: 0.1)
-                                              : const Color(0xFF8A2BE2).withValues(alpha: 0.1),
+                                              : AppColors.primary.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Row(
@@ -242,7 +239,7 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
                                               size: 14,
                                               color: isDueSoon
                                                   ? Colors.orange
-                                                  : const Color(0xFF8A2BE2),
+                                                  : AppColors.primary,
                                             ),
                                             const SizedBox(width: 6),
                                             Text(
@@ -250,7 +247,7 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
                                               style: TextStyle(
                                                 color: isDueSoon
                                                     ? Colors.orange
-                                                    : const Color(0xFF8A2BE2),
+                                                    : AppColors.primary,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w600,
                                               ),
@@ -279,7 +276,7 @@ class _MedicalRecordListViewState extends State<MedicalRecordListView> {
             ),
           );
         },
-        backgroundColor: const Color(0xFF8A2BE2),
+        backgroundColor: AppColors.primary,
         elevation: 4,
         child: const Icon(Icons.add, color: Colors.white),
       ),

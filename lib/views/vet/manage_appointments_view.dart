@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/vet_controller.dart';
@@ -15,7 +16,7 @@ class ManageAppointmentsView extends StatefulWidget {
 }
 
 class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
-  static const _purple = Color(0xFF8A2BE2);
+  
   int _selectedStatusIndex = 0; // 0: Pending, 1: Confirmed, 2: Completed
 
   @override
@@ -26,11 +27,11 @@ class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
     final completed = vc.completedAppointments;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: widget.embeddedMode
           ? null
           : AppBar(
-              title: const Text('All Appointments', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.black)),
+              title: Text('All Appointments', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
               backgroundColor: Colors.transparent,
               elevation: 0,
               iconTheme: const IconThemeData(color: Colors.black),
@@ -45,9 +46,9 @@ class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('All Appointments', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black)),
-                    const SizedBox(height: 4),
-                    Text('View pending, confirmed, and completed appointments', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade500)),
+                    const Text('All Appointments', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black)),
+                    SizedBox(height: 4),
+                    Text('View pending, confirmed, and completed appointments', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
                   ],
                 ),
               ),
@@ -61,8 +62,8 @@ class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
                     label: 'Pending',
                     count: pending.length,
                     isSelected: _selectedStatusIndex == 0,
-                    badgeColor: const Color(0xFFFEF3C7),
-                    textColor: const Color(0xFFB45309),
+                    badgeColor: AppColors.pendingBg,
+                    textColor: AppColors.pendingText,
                     onTap: () => setState(() => _selectedStatusIndex = 0),
                   ),
                   const SizedBox(width: 12),
@@ -70,8 +71,8 @@ class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
                     label: 'Confirmed',
                     count: confirmed.length,
                     isSelected: _selectedStatusIndex == 1,
-                    badgeColor: const Color(0xFFEFF6FF),
-                    textColor: const Color(0xFF1E40AF),
+                    badgeColor: AppColors.confirmedBg,
+                    textColor: AppColors.confirmedText,
                     onTap: () => setState(() => _selectedStatusIndex = 1),
                   ),
                   const SizedBox(width: 12),
@@ -79,8 +80,8 @@ class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
                     label: 'Completed',
                     count: completed.length,
                     isSelected: _selectedStatusIndex == 2,
-                    badgeColor: const Color(0xFFF0FDF4),
-                    textColor: const Color(0xFF166534),
+                    badgeColor: AppColors.completedBg,
+                    textColor: AppColors.completedText,
                     onTap: () => setState(() => _selectedStatusIndex = 2),
                   ),
                 ],
@@ -109,13 +110,13 @@ class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(color: Color(0xFFF3E8FF), shape: BoxShape.circle),
-                  child: const Icon(Icons.check_circle_outline, size: 48, color: _purple),
+                  decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(12)),
+                  child: Icon(Icons.check_circle_outline, size: 48, color: AppColors.primary),
                 ),
                 const SizedBox(height: 16),
-                const Text('All caught up!', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
+                const Text('All caught up!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
                 const SizedBox(height: 6),
-                Text(emptyMessage, style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade500, fontSize: 13)),
+                Text(emptyMessage, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
               ],
             ),
           )
@@ -164,7 +165,6 @@ class _StatusTab extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                   color: textColor,
@@ -174,7 +174,6 @@ class _StatusTab extends StatelessWidget {
               Text(
                 '$count',
                 style: TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: textColor,
@@ -199,7 +198,7 @@ class _AppointmentCard extends StatefulWidget {
 class _AppointmentCardState extends State<_AppointmentCard> {
   bool _processing = false;
 
-  static const _purple = Color(0xFF8A2BE2);
+  
 
   Future<void> _act(bool accept) async {
     setState(() => _processing = true);
@@ -213,10 +212,10 @@ class _AppointmentCardState extends State<_AppointmentCard> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
           accept ? '✓ Appointment accepted for ${widget.appointment.petName}' : '✗ Appointment rejected',
-          style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w600),
           textAlign: TextAlign.center,
         ),
-        backgroundColor: accept ? _purple : Colors.red.shade600,
+        backgroundColor: accept ? AppColors.primary : Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -252,16 +251,16 @@ class _AppointmentCardState extends State<_AppointmentCard> {
               children: [
                 Container(
                   width: 42, height: 42,
-                  decoration: const BoxDecoration(color: Color(0xFFF3E8FF), shape: BoxShape.circle),
-                  child: const Center(child: Text('🐾', style: TextStyle(fontSize: 20))),
+                  decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(12)),
+                  child: Center(child: Text('🐾', style: TextStyle(fontSize: 20))),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(appt.petName, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
-                      Text(appt.reason, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(appt.petName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                      Text(appt.reason, style: TextStyle(fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -292,7 +291,7 @@ class _AppointmentCardState extends State<_AppointmentCard> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      child: const Text('Reject', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.red, fontSize: 14)),
+                      child: Text('Reject', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 14)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -300,15 +299,15 @@ class _AppointmentCardState extends State<_AppointmentCard> {
                     child: ElevatedButton(
                       onPressed: _processing ? null : () => _act(true),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _purple,
-                        disabledBackgroundColor: _purple.withValues(alpha: 0.5),
+                        backgroundColor: AppColors.primary,
+                        disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: _processing
                           ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('Accept', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+                          : const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
                     ),
                   ),
                 ],
@@ -326,23 +325,23 @@ class _AppointmentCardState extends State<_AppointmentCard> {
 
     switch (status) {
       case AppointmentStatus.pending:
-        bgColor = const Color(0xFFFEF3C7);
-        textColor = const Color(0xFFB45309);
+        bgColor = AppColors.pendingBg;
+        textColor = AppColors.pendingText;
         label = 'Pending';
         break;
       case AppointmentStatus.confirmed:
-        bgColor = const Color(0xFFEFF6FF);
-        textColor = const Color(0xFF1E40AF);
+        bgColor = AppColors.confirmedBg;
+        textColor = AppColors.confirmedText;
         label = 'Confirmed';
         break;
       case AppointmentStatus.completed:
-        bgColor = const Color(0xFFF0FDF4);
-        textColor = const Color(0xFF166534);
+        bgColor = AppColors.completedBg;
+        textColor = AppColors.completedText;
         label = 'Completed';
         break;
       case AppointmentStatus.cancelled:
-        bgColor = const Color(0xFFFEF2F2);
-        textColor = const Color(0xFF991B1B);
+        bgColor = AppColors.cancelledBg;
+        textColor = AppColors.cancelledText;
         label = 'Cancelled';
         break;
     }
@@ -350,7 +349,7 @@ class _AppointmentCardState extends State<_AppointmentCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
-      child: Text(label, style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 11, color: textColor)),
+      child: Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: textColor)),
     );
   }
 }
@@ -365,13 +364,13 @@ class _InfoPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: const Color(0xFFF8F9FA), borderRadius: BorderRadius.circular(10)),
+      decoration: BoxDecoration(color: AppColors.lightSurface, borderRadius: BorderRadius.circular(10)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: const Color(0xFF8A2BE2)),
+          Icon(icon, size: 13, color: AppColors.primary),
           const SizedBox(width: 5),
-          Text(text, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
+          Text(text, style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
         ],
       ),
     );

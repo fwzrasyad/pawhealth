@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/vet_controller.dart';
@@ -10,8 +11,8 @@ class VetPatientRecordView extends StatelessWidget {
 
   const VetPatientRecordView({super.key, required this.appointment});
 
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   String _emojiForSpecies(String species) {
     switch (species.toLowerCase()) {
@@ -47,35 +48,30 @@ class VetPatientRecordView extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       body: CustomScrollView(
         slivers: [
           // Hero App Bar
           SliverAppBar(
             expandedHeight: 220,
             pinned: true,
-            backgroundColor: _purple,
-            iconTheme: const IconThemeData(color: Colors.white),
+            backgroundColor: AppColors.primary,
+            iconTheme: const IconThemeData(color: AppColors.darkText),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF8A2BE2), Color(0xFF6B21A8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                   ),
-                ),
                 child: SafeArea(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 40),
+                      SizedBox(height: 40),
                       Container(
                         width: 84,
                         height: 84,
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
                           child: Text(
@@ -88,7 +84,6 @@ class VetPatientRecordView extends StatelessWidget {
                       Text(
                         pet.name,
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
                           fontSize: 22,
                           color: Colors.white,
@@ -97,7 +92,6 @@ class VetPatientRecordView extends StatelessWidget {
                       Text(
                         '${pet.species} · ${pet.breed}',
                         style: TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 13,
                           color: Colors.white.withValues(alpha: 0.8),
                         ),
@@ -119,15 +113,15 @@ class VetPatientRecordView extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _lightPurple,
+                      color: AppColors.chipBg,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: _purple.withValues(alpha: 0.2)),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.medical_services_outlined,
-                          color: _purple,
+                          color: AppColors.primary,
                           size: 20,
                         ),
                         const SizedBox(width: 10),
@@ -135,19 +129,17 @@ class VetPatientRecordView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Visit Reason',
                                 style: TextStyle(
-                                  fontFamily: 'Poppins',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: _purple,
+                                  color: AppColors.primary,
                                 ),
                               ),
                               Text(
                                 appointment.reason,
                                 style: TextStyle(
-                                  fontFamily: 'Poppins',
                                   fontSize: 13,
                                   color: Colors.purple.shade800,
                                 ),
@@ -161,16 +153,15 @@ class VetPatientRecordView extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFDCFCE7),
+                            color: AppColors.healthGreenBg,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             DateFormat('h:mm a').format(appointment.timeSlot),
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
-                              color: Color(0xFF166534),
+                              color: AppColors.completedText,
                             ),
                           ),
                         ),
@@ -184,7 +175,6 @@ class VetPatientRecordView extends StatelessWidget {
                   const Text(
                     'Pet Information',
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: Colors.black,
@@ -222,7 +212,6 @@ class VetPatientRecordView extends StatelessWidget {
                     const Text(
                       'Health Logs',
                       style: TextStyle(
-                        fontFamily: 'Poppins',
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         color: Colors.black,
@@ -249,19 +238,18 @@ class VetPatientRecordView extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.event_note,
                                   size: 14,
-                                  color: _purple,
+                                  color: AppColors.primary,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   DateFormat('MMM d, yyyy').format(log.date),
-                                  style: const TextStyle(
-                                    fontFamily: 'Poppins',
+                                  style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
-                                    color: _purple,
+                                    color: AppColors.primary,
                                   ),
                                 ),
                                 const Spacer(),
@@ -271,16 +259,15 @@ class VetPatientRecordView extends StatelessWidget {
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF3E8FF),
+                                    color: AppColors.chipBg,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     log.activityLevel,
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
+                                    style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
-                                      color: _purple,
+                                      color: AppColors.primary,
                                     ),
                                   ),
                                 ),
@@ -308,7 +295,6 @@ class VetPatientRecordView extends StatelessWidget {
                   const Text(
                     'Medical History',
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: Colors.black,
@@ -326,7 +312,6 @@ class VetPatientRecordView extends StatelessWidget {
                         child: Text(
                           'No medical records found.',
                           style: TextStyle(
-                            fontFamily: 'Poppins',
                             color: Colors.grey.shade500,
                           ),
                         ),
@@ -366,7 +351,6 @@ class _InfoRow extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 13,
                   color: Colors.grey.shade500,
                 ),
@@ -375,7 +359,6 @@ class _InfoRow extends StatelessWidget {
               Text(
                 value,
                 style: const TextStyle(
-                  fontFamily: 'Poppins',
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
@@ -413,7 +396,6 @@ class _LogDetail extends StatelessWidget {
           Text(
             '$label: ',
             style: TextStyle(
-              fontFamily: 'Poppins',
               fontSize: 12,
               color: Colors.grey.shade500,
             ),
@@ -422,7 +404,6 @@ class _LogDetail extends StatelessWidget {
             child: Text(
               value,
               style: const TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Colors.black,
@@ -439,7 +420,7 @@ class _MedicalRecordCard extends StatelessWidget {
   final MedicalRecord record;
   const _MedicalRecordCard({required this.record});
 
-  static const _purple = Color(0xFF8A2BE2);
+  
 
   @override
   Widget build(BuildContext context) {
@@ -464,13 +445,13 @@ class _MedicalRecordCard extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF3E8FF),
-                  shape: BoxShape.circle,
+                decoration: BoxDecoration(
+                  color: AppColors.chipBg,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.medical_information_outlined,
-                  color: _purple,
+                  color: AppColors.primary,
                   size: 16,
                 ),
               ),
@@ -479,7 +460,6 @@ class _MedicalRecordCard extends StatelessWidget {
                 child: Text(
                   record.diagnosis,
                   style: const TextStyle(
-                    fontFamily: 'Poppins',
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                     color: Colors.black,
@@ -529,12 +509,11 @@ class _RecordRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 14, color: const Color(0xFF8A2BE2)),
+          Icon(icon, size: 14, color: AppColors.primary),
           const SizedBox(width: 8),
           Text(
             '$label: ',
             style: TextStyle(
-              fontFamily: 'Poppins',
               fontSize: 12,
               color: Colors.grey.shade500,
             ),
@@ -543,7 +522,6 @@ class _RecordRow extends StatelessWidget {
             child: Text(
               value,
               style: const TextStyle(
-                fontFamily: 'Poppins',
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Colors.black,

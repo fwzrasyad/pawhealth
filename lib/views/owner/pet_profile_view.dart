@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/pet_controller.dart';
 import '../../controllers/appointment_controller.dart';
@@ -49,14 +50,14 @@ class _PetProfileViewState extends State<PetProfileView> {
         .toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       body: CustomScrollView(
         slivers: [
           // Hero Image Header
           SliverAppBar(
             expandedHeight: 240,
             pinned: true,
-            backgroundColor: const Color(0xFF8A2BE2),
+            backgroundColor: AppColors.primary,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 pet.name,
@@ -68,7 +69,7 @@ class _PetProfileViewState extends State<PetProfileView> {
                   child: Icon(
                     pet.species.toLowerCase() == 'cat' ? Icons.pets : Icons.cruelty_free,
                     size: 100,
-                    color: const Color(0xFF8A2BE2),
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -125,7 +126,7 @@ class _PetProfileViewState extends State<PetProfileView> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF333333),
+                      color: AppColors.darkText,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -160,11 +161,11 @@ class _PetProfileViewState extends State<PetProfileView> {
                                     children: [
                                       Text(
                                         DateFormat('EEE, MMM dd, yyyy').format(appt.appointmentDate),
-                                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF333333)),
+                                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.darkText),
                                       ),
                                       Text(
                                         appt.vetName,
-                                        style: const TextStyle(color: Color(0xFF8A2BE2), fontSize: 12, fontWeight: FontWeight.bold),
+                                        style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),
@@ -197,7 +198,7 @@ class _PetProfileViewState extends State<PetProfileView> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF333333),
+                          color: AppColors.darkText,
                         ),
                       ),
                       TextButton.icon(
@@ -211,19 +212,19 @@ class _PetProfileViewState extends State<PetProfileView> {
                           });
                         },
                         icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add Entry'),
-                        style: TextButton.styleFrom(foregroundColor: const Color(0xFF8A2BE2)),
+                        label: Text('Add Entry'),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
                       )
                     ],
                   ),
                   
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   
                   _loadingJournal
-                      ? const Center(
+                      ? Center(
                           child: Padding(
                             padding: EdgeInsets.all(24.0),
-                            child: CircularProgressIndicator(color: Color(0xFF8A2BE2)),
+                            child: CircularProgressIndicator(color: AppColors.primary),
                           ),
                         )
                       : _healthJournalEntries.isEmpty
@@ -256,19 +257,19 @@ class _PetProfileViewState extends State<PetProfileView> {
                                         children: [
                                           Text(
                                             DateFormat('EEE, MMM dd, yyyy').format(entry.date),
-                                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF333333)),
+                                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppColors.darkText),
                                           ),
                                           if (entry.symptomTags.isNotEmpty)
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFFF3E8FF),
+                                                color: AppColors.chipBg,
                                                 borderRadius: BorderRadius.circular(8),
                                               ),
                                               child: Text(
                                                 '${entry.symptomTags.length} symptom${entry.symptomTags.length > 1 ? 's' : ''}',
-                                                style: const TextStyle(
-                                                  color: Color(0xFF8A2BE2),
+                                                style: TextStyle(
+                                                  color: AppColors.primary,
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -277,7 +278,7 @@ class _PetProfileViewState extends State<PetProfileView> {
                                         ],
                                       ),
                                       if (entry.symptomTags.isNotEmpty) ...[
-                                        const SizedBox(height: 10),
+                                        SizedBox(height: 10),
                                         Wrap(
                                           spacing: 6,
                                           runSpacing: 6,
@@ -287,7 +288,7 @@ class _PetProfileViewState extends State<PetProfileView> {
                                                 tag,
                                                 style: const TextStyle(fontSize: 11, color: Colors.white),
                                               ),
-                                              backgroundColor: const Color(0xFF8A2BE2),
+                                              backgroundColor: AppColors.primary,
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                             );
                                           }).toList(),
@@ -320,9 +321,9 @@ class _PetProfileViewState extends State<PetProfileView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label1, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              Text(label1, style: TextStyle(color: Colors.grey, fontSize: 13)),
               const SizedBox(height: 4),
-              Text(value1, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Color(0xFF333333))),
+              Text(value1, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: AppColors.darkText)),
             ],
           ),
         ),
@@ -330,9 +331,9 @@ class _PetProfileViewState extends State<PetProfileView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label2, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+              Text(label2, style: TextStyle(color: Colors.grey, fontSize: 13)),
               const SizedBox(height: 4),
-              Text(value2, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Color(0xFF333333))),
+              Text(value2, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: AppColors.darkText)),
             ],
           ),
         ),

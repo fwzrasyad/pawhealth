@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/appointment_controller.dart';
@@ -13,7 +14,7 @@ class MyVisitsView extends StatefulWidget {
 }
 
 class _MyVisitsViewState extends State<MyVisitsView> {
-  static const _purple = Color(0xFF8A2BE2);
+  
 
   @override
   void initState() {
@@ -28,35 +29,20 @@ class _MyVisitsViewState extends State<MyVisitsView> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: AppColors.lightSurface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
           elevation: 0,
           automaticallyImplyLeading: false,
-          title: const Text(
-            'My Visits',
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Poppins',
-              fontSize: 22,
-            ),
-          ),
-          bottom: const TabBar(
-            labelColor: _purple,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: _purple,
+          title: Text('My Visits', style: AppFonts.headline(fontSize: 22)),
+          bottom: TabBar(
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.navInactive,
+            indicatorColor: AppColors.primary,
             indicatorWeight: 3,
-            labelStyle: TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 14,
-            ),
-            tabs: [
+            labelStyle: AppFonts.bodyBold(fontSize: 14),
+            unselectedLabelStyle: AppFonts.body(fontSize: 14),
+            tabs: const [
               Tab(text: 'Upcoming'),
               Tab(text: 'History'),
             ],
@@ -100,7 +86,7 @@ class _AppointmentList extends StatelessWidget {
     required this.emptySubtitle,
   });
 
-  static const _purple = Color(0xFF8A2BE2);
+  
 
   @override
   Widget build(BuildContext context) {
@@ -111,11 +97,11 @@ class _AppointmentList extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF3E8FF),
-                shape: BoxShape.circle,
+              decoration: BoxDecoration(
+                color: AppColors.chipBg,
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(emptyIcon, size: 48, color: _purple),
+              child: Icon(emptyIcon, size: 48, color: AppColors.primary),
             ),
             const SizedBox(height: 20),
             Text(
@@ -123,7 +109,6 @@ class _AppointmentList extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
                 color: Colors.black,
               ),
             ),
@@ -132,7 +117,6 @@ class _AppointmentList extends StatelessWidget {
               emptySubtitle,
               style: TextStyle(
                 fontSize: 13,
-                fontFamily: 'Poppins',
                 color: Colors.grey.shade500,
               ),
             ),
@@ -173,7 +157,7 @@ class AppointmentCard extends StatelessWidget {
 
   Color _statusBg(AppointmentStatus s) {
     switch (s) {
-      case AppointmentStatus.confirmed: return const Color(0xFFDCFCE7);
+      case AppointmentStatus.confirmed: return AppColors.healthGreenBg;
       case AppointmentStatus.pending:   return const Color(0xFFFEF9C3);
       case AppointmentStatus.completed: return const Color(0xFFF0F0F0);
       case AppointmentStatus.cancelled: return const Color(0xFFFFE4E4);
@@ -182,10 +166,10 @@ class AppointmentCard extends StatelessWidget {
 
   Color _statusFg(AppointmentStatus s) {
     switch (s) {
-      case AppointmentStatus.confirmed: return const Color(0xFF166534);
+      case AppointmentStatus.confirmed: return AppColors.completedText;
       case AppointmentStatus.pending:   return const Color(0xFF854D0E);
       case AppointmentStatus.completed: return const Color(0xFF555555);
-      case AppointmentStatus.cancelled: return const Color(0xFF991B1B);
+      case AppointmentStatus.cancelled: return AppColors.cancelledText;
     }
   }
 
@@ -231,14 +215,13 @@ class AppointmentCard extends StatelessWidget {
                     appt.vetName,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'Poppins',
                       fontSize: 16,
                       color: Colors.black,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -249,7 +232,6 @@ class AppointmentCard extends StatelessWidget {
                     _statusLabel(appt.status),
                     style: TextStyle(
                       color: _statusFg(appt.status),
-                      fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                     ),
@@ -262,26 +244,24 @@ class AppointmentCard extends StatelessWidget {
             // Date & Time
             Row(
               children: [
-                const Icon(Icons.calendar_today_outlined,
-                    size: 14, color: Color(0xFF8A2BE2)),
+                Icon(Icons.calendar_today_outlined,
+                    size: 14, color: AppColors.primary),
                 const SizedBox(width: 6),
                 Text(
                   dateFmt.format(appt.appointmentDate),
                   style: TextStyle(
                     fontSize: 13,
-                    fontFamily: 'Poppins',
                     color: Colors.grey.shade700,
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Icon(Icons.access_time,
-                    size: 14, color: Color(0xFF8A2BE2)),
+                Icon(Icons.access_time,
+                    size: 14, color: AppColors.primary),
                 const SizedBox(width: 6),
                 Text(
                   timeFmt.format(appt.timeSlot),
                   style: TextStyle(
                     fontSize: 13,
-                    fontFamily: 'Poppins',
                     color: Colors.grey.shade700,
                   ),
                 ),
@@ -292,13 +272,12 @@ class AppointmentCard extends StatelessWidget {
             // Pet name
             Row(
               children: [
-                const Icon(Icons.pets, size: 14, color: Color(0xFF8A2BE2)),
+                Icon(Icons.pets, size: 14, color: AppColors.primary),
                 const SizedBox(width: 6),
                 Text(
                   'Pet: ${appt.petName}',
                   style: TextStyle(
                     fontSize: 13,
-                    fontFamily: 'Poppins',
                     color: Colors.grey.shade700,
                   ),
                 ),
@@ -309,14 +288,13 @@ class AppointmentCard extends StatelessWidget {
             // Reason
             Row(
               children: [
-                const Icon(Icons.note_outlined, size: 14, color: Color(0xFF8A2BE2)),
+                Icon(Icons.note_outlined, size: 14, color: AppColors.primary),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     appt.reason,
                     style: TextStyle(
                       fontSize: 12,
-                      fontFamily: 'Poppins',
                       color: Colors.grey.shade500,
                     ),
                     maxLines: 1,

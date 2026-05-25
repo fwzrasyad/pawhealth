@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/appointment_controller.dart';
@@ -13,10 +14,6 @@ class BookAppointmentView extends StatefulWidget {
 }
 
 class _BookAppointmentViewState extends State<BookAppointmentView> {
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
-  static const _softPurple = Color(0xFFEDE9FE);
-
   int _currentStep = 0;
   bool _isBooking = false;
   String? _selectedPetId;
@@ -25,14 +22,22 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
 
   /// Clinic-wide default time slots
   static const List<String> _defaultTimeSlots = [
-    '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00',
+    '09:00',
+    '10:00',
+    '11:00',
+    '12:00',
+    '13:00',
+    '14:00',
+    '15:00',
+    '16:00',
   ];
 
   @override
   void initState() {
     super.initState();
-    _reasonController = TextEditingController(text: widget.initialReason ?? 'General Consultation');
+    _reasonController = TextEditingController(
+      text: widget.initialReason ?? 'General Consultation',
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ctrl = context.read<AppointmentController>();
       ctrl.resetBookingForm();
@@ -84,12 +89,16 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
       canPop: false,
       onPopInvoked: _onPopInvoked,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: AppColors.lightSurface,
         appBar: AppBar(
-          backgroundColor: _purple,
+          backgroundColor: AppColors.primary,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: AppColors.darkText,
+              size: 20,
+            ),
             onPressed: () {
               if (_currentStep > 0) {
                 setState(() => _currentStep--);
@@ -101,7 +110,6 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
           title: Text(
             _getStepTitle(),
             style: const TextStyle(
-              fontFamily: 'Poppins',
               fontWeight: FontWeight.bold,
               fontSize: 18,
               color: Colors.white,
@@ -154,7 +162,7 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
 
   Widget _buildProgressBar() {
     return Container(
-      color: _purple,
+      color: AppColors.primary,
       padding: const EdgeInsets.only(bottom: 20, left: 24, right: 24, top: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -168,27 +176,30 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    color: isActive
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.3),
                     boxShadow: isCurrent
                         ? [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
-                            )
+                            ),
                           ]
                         : null,
                   ),
                   child: Center(
                     child: index < _currentStep
-                        ? const Icon(Icons.check, color: _purple, size: 18)
+                        ? Icon(Icons.check, color: AppColors.primary, size: 18)
                         : Text(
                             '${index + 1}',
                             style: TextStyle(
-                              fontFamily: 'Poppins',
                               fontWeight: FontWeight.bold,
-                              color: isActive ? _purple : Colors.white,
+                              color: isActive
+                                  ? AppColors.primary
+                                  : Colors.white,
                             ),
                           ),
                   ),
@@ -197,7 +208,9 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   Expanded(
                     child: Container(
                       height: 2,
-                      color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.3),
+                      color: isActive
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.3),
                     ),
                   ),
               ],
@@ -224,7 +237,7 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
   // ── Step 1: Clinic Selection ──────────────────────────────────────────────
   Widget _buildStep1ClinicSelection(AppointmentController ctrl) {
     if (ctrl.isLoading && ctrl.clinics.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: _purple));
+      return Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     final filteredClinics = ctrl.clinics.where((c) {
@@ -248,7 +261,7 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
-                )
+                ),
               ],
             ),
             child: Row(
@@ -260,13 +273,14 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                     decoration: InputDecoration(
                       hintText: 'Search by clinic name or city...',
                       hintStyle: TextStyle(
-                          fontFamily: 'Poppins',
-                          color: Colors.grey.shade400,
-                          fontSize: 14),
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                      ),
                       border: InputBorder.none,
                     ),
-                    onChanged: (val) => setState(() => _clinicSearchQuery = val),
-                    style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
+                    onChanged: (val) =>
+                        setState(() => _clinicSearchQuery = val),
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ),
               ],
@@ -279,7 +293,8 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
             itemCount: filteredClinics.length,
             itemBuilder: (context, index) {
               final clinic = filteredClinics[index];
-              final isSelected = ctrl.selectedClinic?.clinicId == clinic.clinicId;
+              final isSelected =
+                  ctrl.selectedClinic?.clinicId == clinic.clinicId;
 
               return GestureDetector(
                 onTap: () {
@@ -293,14 +308,14 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     border: isSelected
-                        ? Border.all(color: _purple, width: 2)
+                        ? Border.all(color: AppColors.primary, width: 2)
                         : Border.all(color: Colors.transparent, width: 2),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
-                      )
+                      ),
                     ],
                   ),
                   child: Row(
@@ -309,10 +324,14 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: _lightPurple,
+                          color: AppColors.chipBg,
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.local_hospital, color: _purple, size: 28),
+                        child: Icon(
+                          Icons.local_hospital,
+                          color: AppColors.primary,
+                          size: 28,
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -322,7 +341,6 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                             Text(
                               clinic.name,
                               style: const TextStyle(
-                                fontFamily: 'Poppins',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                                 color: Colors.black87,
@@ -332,13 +350,16 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.location_on, size: 14, color: Colors.grey.shade500),
+                                Icon(
+                                  Icons.location_on,
+                                  size: 14,
+                                  color: Colors.grey.shade500,
+                                ),
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: Text(
                                     clinic.city,
                                     style: TextStyle(
-                                      fontFamily: 'Poppins',
                                       fontSize: 13,
                                       color: Colors.grey.shade600,
                                     ),
@@ -351,13 +372,16 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.home_work_outlined, size: 14, color: Colors.grey.shade500),
+                                  Icon(
+                                    Icons.home_work_outlined,
+                                    size: 14,
+                                    color: Colors.grey.shade500,
+                                  ),
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
                                       clinic.address,
                                       style: TextStyle(
-                                        fontFamily: 'Poppins',
                                         fontSize: 12,
                                         color: Colors.grey.shade500,
                                       ),
@@ -386,7 +410,7 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
   // ── Step 2: Vet Selection ─────────────────────────────────────────────────
   Widget _buildStep2VetSelection(AppointmentController ctrl) {
     if (ctrl.isLoading) {
-      return const Center(child: CircularProgressIndicator(color: _purple));
+      return Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     if (ctrl.vets.isEmpty) {
@@ -398,7 +422,7 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
             const SizedBox(height: 16),
             Text(
               'No veterinarians found for this clinic.',
-              style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade600),
+              style: TextStyle(color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -425,14 +449,14 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: isSelected
-                  ? Border.all(color: _purple, width: 2)
+                  ? Border.all(color: AppColors.primary, width: 2)
                   : Border.all(color: Colors.transparent, width: 2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
-                )
+                ),
               ],
             ),
             child: Row(
@@ -440,15 +464,18 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                 Container(
                   width: 64,
                   height: 64,
-                  decoration: const BoxDecoration(
-                    color: _lightPurple,
-                    shape: BoxShape.circle,
+                  decoration: BoxDecoration(
+                    color: AppColors.chipBg,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
-                    child: Text(_vetEmoji(vet.vetId), style: const TextStyle(fontSize: 30)),
+                    child: Text(
+                      _vetEmoji(vet.vetId),
+                      style: const TextStyle(fontSize: 30),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -456,7 +483,6 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                       Text(
                         vet.name,
                         style: const TextStyle(
-                          fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: Colors.black87,
@@ -468,18 +494,20 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                         runSpacing: 4,
                         children: vet.specialties.take(3).map((s) {
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: _lightPurple,
+                              color: AppColors.chipBg,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               s,
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
+                              style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: _purple,
+                                color: AppColors.primary,
                               ),
                             ),
                           );
@@ -490,7 +518,6 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                         Text(
                           vet.bio,
                           style: TextStyle(
-                            fontFamily: 'Poppins',
                             fontSize: 12,
                             color: Colors.grey.shade600,
                           ),
@@ -502,12 +529,15 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.schedule, size: 14, color: Colors.grey.shade500),
+                            Icon(
+                              Icons.schedule,
+                              size: 14,
+                              color: Colors.grey.shade500,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               vet.workingHours,
                               style: TextStyle(
-                                fontFamily: 'Poppins',
                                 fontSize: 12,
                                 color: Colors.grey.shade500,
                               ),
@@ -528,8 +558,12 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
   }
 
   // ── Step 3: Final Details ─────────────────────────────────────────────────
-  Widget _buildStep3FinalDetails(AppointmentController ctrl, PetController petCtrl) {
-    final bool canBook = ctrl.selectedTimeSlot != null &&
+  Widget _buildStep3FinalDetails(
+    AppointmentController ctrl,
+    PetController petCtrl,
+  ) {
+    final bool canBook =
+        ctrl.selectedTimeSlot != null &&
         _selectedPetId != null &&
         _reasonController.text.trim().isNotEmpty &&
         !_isBooking;
@@ -550,31 +584,35 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: _softPurple,
+                      color: AppColors.chipBg,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.check_circle, color: _purple, size: 24),
-                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.primary,
+                          size: 24,
+                        ),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 ctrl.selectedClinic?.name ?? '',
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: _purple,
+                                  color: AppColors.primary,
                                   fontSize: 14,
                                 ),
                               ),
                               Text(
                                 'with ${ctrl.selectedVet?.name ?? ''}',
                                 style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  color: _purple.withValues(alpha: 0.8),
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.8,
+                                  ),
                                   fontSize: 12,
                                 ),
                               ),
@@ -607,7 +645,10 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionHeader('Pick a Date', Icons.calendar_month_outlined),
+                      _sectionHeader(
+                        'Pick a Date',
+                        Icons.calendar_month_outlined,
+                      ),
                       const SizedBox(height: 14),
                       _buildDatesList(ctrl),
                     ],
@@ -621,7 +662,10 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionHeader('Available Times', Icons.access_time_rounded),
+                      _sectionHeader(
+                        'Available Times',
+                        Icons.access_time_rounded,
+                      ),
                       const SizedBox(height: 14),
                       _buildTimeSlotsGrid(ctrl),
                     ],
@@ -657,13 +701,13 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                 color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, -4),
-              )
+              ),
             ],
           ),
           child: ElevatedButton(
             onPressed: canBook ? () => _handleBooking(ctrl, petCtrl) : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _purple,
+              backgroundColor: AppColors.primary,
               disabledBackgroundColor: Colors.grey.shade300,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
@@ -675,12 +719,14 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                 ? const SizedBox(
                     width: 24,
                     height: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
                   )
                 : const Text(
                     'Confirm Booking',
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: Colors.white,
@@ -700,16 +746,15 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: _lightPurple,
+            color: AppColors.chipBg,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: _purple, size: 18),
+          child: Icon(icon, color: AppColors.primary, size: 18),
         ),
         const SizedBox(width: 12),
         Text(
           title,
           style: const TextStyle(
-            fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
             fontSize: 16,
             color: Colors.black87,
@@ -724,22 +769,18 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: _lightPurple,
+          color: AppColors.chipBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _purple.withValues(alpha: 0.15)),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
         ),
         child: Row(
           children: [
-            const Icon(Icons.info_outline, color: _purple, size: 20),
+            Icon(Icons.info_outline, color: AppColors.primary, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'Add a pet first to book a consultation.',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 13,
-                  color: Colors.grey.shade700,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
               ),
             ),
           ],
@@ -760,7 +801,9 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 gradient: isSelected
-                    ? const LinearGradient(colors: [Color(0xFF9333EA), _purple])
+                    ? const LinearGradient(
+                        colors: [AppColors.primary, AppColors.primary],
+                      )
                     : null,
                 color: isSelected ? null : Colors.white,
                 borderRadius: BorderRadius.circular(16),
@@ -770,16 +813,19 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: _purple.withValues(alpha: 0.3),
+                          color: AppColors.primary.withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
-                        )
+                        ),
                       ]
                     : [],
               ),
               child: Row(
                 children: [
-                  Text(_petEmoji(pet.species), style: const TextStyle(fontSize: 24)),
+                  Text(
+                    _petEmoji(pet.species),
+                    style: const TextStyle(fontSize: 24),
+                  ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -787,7 +833,6 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                       Text(
                         pet.name,
                         style: TextStyle(
-                          fontFamily: 'Poppins',
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                           color: isSelected ? Colors.white : Colors.black87,
@@ -796,9 +841,10 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                       Text(
                         '${pet.species} • ${pet.breed}',
                         style: TextStyle(
-                          fontFamily: 'Poppins',
                           fontSize: 11,
-                          color: isSelected ? Colors.white70 : Colors.grey.shade500,
+                          color: isSelected
+                              ? Colors.white70
+                              : Colors.grey.shade500,
                         ),
                       ),
                     ],
@@ -823,7 +869,8 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
         itemCount: dates.length,
         itemBuilder: (context, index) {
           final date = dates[index];
-          final isSelected = controller.selectedDate?.day == date.day &&
+          final isSelected =
+              controller.selectedDate?.day == date.day &&
               controller.selectedDate?.month == date.month &&
               controller.selectedDate?.year == date.year;
 
@@ -838,12 +885,14 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                     ? const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFF9333EA), _purple],
+                        colors: [AppColors.primary, AppColors.primary],
                       )
                     : null,
                 color: isSelected ? null : Colors.white,
                 borderRadius: BorderRadius.circular(18),
-                border: isSelected ? null : Border.all(color: Colors.grey.shade200),
+                border: isSelected
+                    ? null
+                    : Border.all(color: Colors.grey.shade200),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -851,7 +900,6 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   Text(
                     DateFormat('E').format(date),
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: isSelected ? Colors.white70 : Colors.grey.shade500,
@@ -861,7 +909,6 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   Text(
                     '${date.day}',
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: isSelected ? Colors.white : Colors.black87,
@@ -871,7 +918,6 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   Text(
                     DateFormat('MMM').format(date),
                     style: TextStyle(
-                      fontFamily: 'Poppins',
                       fontSize: 10,
                       color: isSelected ? Colors.white60 : Colors.grey.shade400,
                     ),
@@ -891,7 +937,7 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Text(
           'Select a date first.',
-          style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade400, fontSize: 14),
+          style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
         ),
       );
     }
@@ -900,7 +946,13 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
     List<String> availableSlots = _defaultTimeSlots;
     if (controller.selectedVet != null) {
       final dayNames = [
-        'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+        'Sunday',
       ];
       final dayName = dayNames[controller.selectedDate!.weekday - 1];
       final vetSlots = controller.selectedVet!.slotsForDay(dayName);
@@ -914,50 +966,55 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Text(
           'No times available on this date.',
-          style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade500, fontSize: 14),
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
         ),
       );
     }
 
     final now = DateTime.now();
-    final slotEntries = availableSlots.map((time24) {
-      final parts = time24.split(':');
-      final hour = int.parse(parts[0]);
-      final minute = int.parse(parts[1]);
-      final suffix = hour >= 12 ? 'PM' : 'AM';
-      final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-      final displayStr = '$displayHour:${parts[1]} $suffix';
+    final slotEntries = availableSlots
+        .map((time24) {
+          final parts = time24.split(':');
+          final hour = int.parse(parts[0]);
+          final minute = int.parse(parts[1]);
+          final suffix = hour >= 12 ? 'PM' : 'AM';
+          final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+          final displayStr = '$displayHour:${parts[1]} $suffix';
 
-      final slotDate = DateTime(
-        controller.selectedDate!.year,
-        controller.selectedDate!.month,
-        controller.selectedDate!.day,
-        hour,
-        minute,
-      );
-      return MapEntry(displayStr, slotDate);
-    }).where((entry) {
-      final slotDate = entry.value;
-      if (slotDate.isBefore(now)) return false;
-      
-      if (controller.selectedVet != null) {
-        final isBooked = controller.selectedVet!.bookedSlots.any((booked) => 
-            booked.year == slotDate.year && 
-            booked.month == slotDate.month && 
-            booked.day == slotDate.day && 
-            booked.hour == slotDate.hour && 
-            booked.minute == slotDate.minute);
-        if (isBooked) return false;
-      }
-      return true;
-    }).toList();
+          final slotDate = DateTime(
+            controller.selectedDate!.year,
+            controller.selectedDate!.month,
+            controller.selectedDate!.day,
+            hour,
+            minute,
+          );
+          return MapEntry(displayStr, slotDate);
+        })
+        .where((entry) {
+          final slotDate = entry.value;
+          if (slotDate.isBefore(now)) return false;
+
+          if (controller.selectedVet != null) {
+            final isBooked = controller.selectedVet!.bookedSlots.any(
+              (booked) =>
+                  booked.year == slotDate.year &&
+                  booked.month == slotDate.month &&
+                  booked.day == slotDate.day &&
+                  booked.hour == slotDate.hour &&
+                  booked.minute == slotDate.minute,
+            );
+            if (isBooked) return false;
+          }
+          return true;
+        })
+        .toList();
 
     if (slotEntries.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Text(
           'No times available on this date.',
-          style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade500, fontSize: 14),
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
         ),
       );
     }
@@ -986,16 +1043,19 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               gradient: isSelected
-                  ? const LinearGradient(colors: [Color(0xFF9333EA), _purple])
+                  ? const LinearGradient(
+                      colors: [AppColors.primary, AppColors.primary],
+                    )
                   : null,
               color: isSelected ? null : Colors.white,
               borderRadius: BorderRadius.circular(14),
-              border: isSelected ? null : Border.all(color: Colors.grey.shade200),
+              border: isSelected
+                  ? null
+                  : Border.all(color: Colors.grey.shade200),
             ),
             child: Text(
               timeStr,
               style: TextStyle(
-                fontFamily: 'Poppins',
                 color: isSelected ? Colors.white : Colors.black87,
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -1018,20 +1078,15 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
       child: TextField(
         controller: _reasonController,
         maxLines: 3,
-        style: const TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 14,
-          color: Colors.black87,
-        ),
+        style: const TextStyle(fontSize: 14, color: Colors.black87),
         decoration: InputDecoration(
           hintText: 'e.g., General Checkup, Vaccination, Skin Issue...',
-          hintStyle: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 13,
-            color: Colors.grey.shade400,
-          ),
+          hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
         onChanged: (_) => setState(() {}),
       ),
@@ -1039,7 +1094,10 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
   }
 
   // ── Handle Booking ────────────────────────────────────────────────────────
-  Future<void> _handleBooking(AppointmentController controller, PetController petCtrl) async {
+  Future<void> _handleBooking(
+    AppointmentController controller,
+    PetController petCtrl,
+  ) async {
     setState(() => _isBooking = true);
 
     final targetPet = petCtrl.pets.firstWhere((p) => p.petId == _selectedPetId);
@@ -1060,14 +1118,16 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
               SizedBox(width: 10),
               Text(
                 'Booking Confirmed!',
-                style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+                style: TextStyle(fontWeight: FontWeight.w600),
               ),
             ],
           ),
-          backgroundColor: _purple,
+          backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 20, left: 24, right: 24),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       );
       Navigator.pop(context);

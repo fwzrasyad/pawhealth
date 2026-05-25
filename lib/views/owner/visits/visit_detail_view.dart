@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/appointment_controller.dart';
@@ -10,8 +11,8 @@ class VisitDetailView extends StatelessWidget {
 
   const VisitDetailView({super.key, required this.appointment});
 
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   String _emoji(String vetName) {
     // Derive a unique icon per vet for visual variety
@@ -35,15 +36,14 @@ class VisitDetailView extends StatelessWidget {
     final isCompleted = live.status == AppointmentStatus.completed;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Visit Details',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
-          ),
+            ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -73,9 +73,9 @@ class VisitDetailView extends StatelessWidget {
                   Container(
                     width: 72,
                     height: 72,
-                    decoration: const BoxDecoration(
-                      color: _lightPurple,
-                      shape: BoxShape.circle,
+                    decoration: BoxDecoration(
+                      color: AppColors.chipBg,
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
                       child: Text(
@@ -94,7 +94,6 @@ class VisitDetailView extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
                             color: Colors.black,
                           ),
                         ),
@@ -103,7 +102,6 @@ class VisitDetailView extends StatelessWidget {
                           'PawHealth Vet Clinic',
                           style: TextStyle(
                             fontSize: 13,
-                            fontFamily: 'Poppins',
                             color: Colors.grey.shade600,
                           ),
                         ),
@@ -112,7 +110,6 @@ class VisitDetailView extends StatelessWidget {
                           '9:00 AM – 10:00 PM',
                           style: TextStyle(
                             fontSize: 12,
-                            fontFamily: 'Poppins',
                             color: Colors.grey.shade500,
                           ),
                         ),
@@ -148,7 +145,6 @@ class VisitDetailView extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Poppins',
                   color: Colors.black,
                 ),
               ),
@@ -171,42 +167,42 @@ class VisitDetailView extends StatelessWidget {
                   children: [
                     Text(
                       'Diagnosis: ${live.medicalRecord!.diagnosis}',
-                      style: const TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     if (live.medicalRecord!.doctorNotes?.isNotEmpty ?? false) ...[
                       const Text(
                         'Notes:',
-                        style: TextStyle(fontSize: 13, fontFamily: 'Poppins', color: Colors.grey),
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         live.medicalRecord!.doctorNotes!,
-                        style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+                        style: const TextStyle(fontSize: 14, ),
                       ),
                       const SizedBox(height: 12),
                     ],
                     if (live.medicalRecord!.medicationsPrescribed?.isNotEmpty ?? false) ...[
                       const Text(
                         'Medications:',
-                        style: TextStyle(fontSize: 13, fontFamily: 'Poppins', color: Colors.grey),
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         live.medicalRecord!.medicationsPrescribed!.join(', '),
-                        style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+                        style: const TextStyle(fontSize: 14, ),
                       ),
                       const SizedBox(height: 12),
                     ],
                     if (live.medicalRecord!.followUpInstructions?.isNotEmpty ?? false) ...[
                       const Text(
                         'Follow-up Instructions:',
-                        style: TextStyle(fontSize: 13, fontFamily: 'Poppins', color: Colors.grey),
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         live.medicalRecord!.followUpInstructions!,
-                        style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'),
+                        style: const TextStyle(fontSize: 14, ),
                       ),
                     ],
                   ],
@@ -222,20 +218,20 @@ class VisitDetailView extends StatelessWidget {
 
   Widget _buildStatusRow(AppointmentStatus status) {
     final map = {
-      AppointmentStatus.confirmed: ('Confirmed', const Color(0xFFDCFCE7), const Color(0xFF166534)),
+      AppointmentStatus.confirmed: ('Confirmed', AppColors.healthGreenBg, AppColors.completedText),
       AppointmentStatus.pending:   ('Pending',   const Color(0xFFFEF9C3), const Color(0xFF854D0E)),
       AppointmentStatus.completed: ('Completed', const Color(0xFFF0F0F0), const Color(0xFF555555)),
-      AppointmentStatus.cancelled: ('Cancelled', const Color(0xFFFFE4E4), const Color(0xFF991B1B)),
+      AppointmentStatus.cancelled: ('Cancelled', const Color(0xFFFFE4E4), AppColors.cancelledText),
     };
     final (label, bg, fg) = map[status]!;
     return Row(
       children: [
-        const Text('Status:', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14)),
+        const Text('Status:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
         const SizedBox(width: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
           decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
-          child: Text(label, style: TextStyle(color: fg, fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 13)),
+          child: Text(label, style: TextStyle(color: fg, fontWeight: FontWeight.bold, fontSize: 13)),
         ),
       ],
     );
@@ -267,14 +263,14 @@ class VisitDetailView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(r.icon, color: _purple, size: 18),
+          Icon(r.icon, color: AppColors.primary, size: 18),
           const SizedBox(width: 14),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(r.label, style: TextStyle(fontSize: 11, fontFamily: 'Poppins', color: Colors.grey.shade500)),
+              Text(r.label, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
               const SizedBox(height: 2),
-              Text(r.value, style: const TextStyle(fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: Colors.black)),
+              Text(r.value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black)),
             ],
           ),
         ],
@@ -302,16 +298,16 @@ class VisitDetailView extends StatelessWidget {
         } else if (isCompleted) {
           return ElevatedButton.icon(
             icon: const Icon(Icons.calendar_month, color: Colors.white, size: 20),
-            label: const Text(
+            label: Text(
               'Book Follow-up',
-              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
             ),
             onPressed: () => Navigator.push(
               ctx,
               MaterialPageRoute(builder: (_) => const BookAppointmentView()),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _purple,
+              backgroundColor: AppColors.primary,
               minimumSize: const Size(double.infinity, 52),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               elevation: 0,
@@ -326,7 +322,7 @@ class VisitDetailView extends StatelessWidget {
               side: BorderSide(color: Colors.grey.shade300),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            child: Text('Appointment Cancelled', style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade400)),
+            child: Text('Appointment Cancelled', style: TextStyle(color: Colors.grey.shade400)),
           );
         }
       }),
@@ -359,7 +355,7 @@ class _CancelButtonState extends State<_CancelButton> {
                   SnackBar(
                     content: const Text('Appointment cancelled.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                        style: TextStyle(fontWeight: FontWeight.w600)),
                     backgroundColor: Colors.red.shade600,
                     behavior: SnackBarBehavior.floating,
                     margin: const EdgeInsets.all(24),
@@ -377,7 +373,7 @@ class _CancelButtonState extends State<_CancelButton> {
           ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.red, strokeWidth: 2))
           : const Text(
               'Cancel Appointment',
-              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
             ),
     );
   }

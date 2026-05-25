@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/pet_controller.dart';
+import '../../utils/constants.dart';
 import 'medical_record_list_view.dart';
 
 class OwnerHomeView extends StatefulWidget {
@@ -30,34 +31,26 @@ class _OwnerHomeViewState extends State<OwnerHomeView> {
     final petController = Provider.of<PetController>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'My Pets',
-          style: TextStyle(
-            color: Color(0xFF333333),
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
-          ),
+          style: AppFonts.fraunces(fontSize: 20),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
       ),
       body: petController.isLoading
-          ? const Center(
+          ? Center(
               child: CircularProgressIndicator(
-              color: Color(0xFF8A2BE2),
+              color: AppColors.primary,
             ))
           : petController.pets.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                   'No pets found. Add one!',
-                  style: TextStyle(
-                    color: Color(0xFF333333),
-                    fontSize: 16,
-                    fontFamily: 'Poppins',
-                  ),
+                  style: AppFonts.body(color: AppColors.mutedText, fontSize: 16),
                 ))
               : ListView.builder(
                   padding:
@@ -77,61 +70,40 @@ class _OwnerHomeViewState extends State<OwnerHomeView> {
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 16),
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
+                        decoration: AppDecor.card(),
                         child: Row(
                           children: [
                             Container(
-                              height: 60,
-                              width: 60,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF8A2BE2).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Icon(
+                              height: 56,
+                              width: 56,
+                              decoration: AppDecor.squareChip(),
+                              child: Icon(
                                 Icons.pets,
-                                color: Color(0xFF8A2BE2),
-                                size: 30,
+                                color: AppColors.primary,
+                                size: 26,
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     pet.name,
-                                    style: const TextStyle(
-                                      color: Color(0xFF333333),
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Poppins',
-                                    ),
+                                    style: AppFonts.fraunces(fontSize: 18),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     '${pet.species} • ${pet.breed}',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 14,
-                                    ),
+                                    style: AppFonts.caption(color: AppColors.metaText),
                                   ),
                                 ],
                               ),
                             ),
-                            const Icon(
+                            Icon(
                               Icons.arrow_forward_ios,
                               size: 16,
-                              color: Colors.grey,
+                              color: AppColors.navInactive,
                             ),
                           ],
                         ),

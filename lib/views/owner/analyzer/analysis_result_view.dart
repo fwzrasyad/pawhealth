@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/smart_analyzer_controller.dart';
@@ -8,8 +9,8 @@ import 'smart_analyzer_intro_view.dart';
 class AnalysisResultView extends StatelessWidget {
   const AnalysisResultView({super.key});
 
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   Color _confidenceColor(double score) {
     if (score >= 0.85) return Colors.green;
@@ -36,7 +37,7 @@ class AnalysisResultView extends StatelessWidget {
     final pct = (scan.confidenceScore * 100).toStringAsFixed(0);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       body: Stack(
         children: [
           // Top image / placeholder area
@@ -55,18 +56,17 @@ class AnalysisResultView extends StatelessWidget {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: _lightPurple,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: _purple.withValues(alpha: 0.3), width: 3),
+                      color: AppColors.chipBg,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 3),
                     ),
-                    child: const Icon(Icons.pets, size: 60, color: _purple),
+                    child: Icon(Icons.pets, size: 60, color: AppColors.primary),
                   ),
                   const SizedBox(height: 10),
                   Text(
                     'Scan captured ${DateFormat('MMM d, yyyy').format(scan.scanDate)}',
                     style: TextStyle(
                       fontSize: 12,
-                      fontFamily: 'Poppins',
                       color: Colors.purple.shade300,
                     ),
                   ),
@@ -82,7 +82,7 @@ class AnalysisResultView extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.9),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -125,14 +125,13 @@ class AnalysisResultView extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                               decoration: BoxDecoration(
-                                color: _lightPurple,
+                                color: AppColors.chipBg,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'AI Result',
                                 style: TextStyle(
-                                  color: _purple,
-                                  fontFamily: 'Poppins',
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -140,7 +139,7 @@ class AnalysisResultView extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
 
                         // Detected label
                         Text(
@@ -148,7 +147,6 @@ class AnalysisResultView extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
                             color: Colors.black,
                           ),
                         ),
@@ -161,7 +159,6 @@ class AnalysisResultView extends StatelessWidget {
                               'Confidence',
                               style: TextStyle(
                                 fontSize: 13,
-                                fontFamily: 'Poppins',
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -170,7 +167,6 @@ class AnalysisResultView extends StatelessWidget {
                               '$pct% — ${_confidenceLabel(scan.confidenceScore)}',
                               style: TextStyle(
                                 fontSize: 13,
-                                fontFamily: 'Poppins',
                                 fontWeight: FontWeight.w600,
                                 color: _confidenceColor(scan.confidenceScore),
                               ),
@@ -195,7 +191,7 @@ class AnalysisResultView extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8F9FA),
+                            color: AppColors.lightSurface,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Column(
@@ -205,7 +201,6 @@ class AnalysisResultView extends StatelessWidget {
                                 '💡 What this means',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontFamily: 'Poppins',
                                   fontSize: 14,
                                   color: Colors.black,
                                 ),
@@ -215,7 +210,6 @@ class AnalysisResultView extends StatelessWidget {
                                 'The AI detected signs consistent with "${scan.aiResultLabel}" based on the visual features in your photo. Please consult a veterinarian for a proper diagnosis and treatment plan.',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  fontFamily: 'Poppins',
                                   color: Colors.grey.shade700,
                                   height: 1.6,
                                 ),
@@ -245,7 +239,6 @@ class AnalysisResultView extends StatelessWidget {
                                   'This is a preliminary AI assessment, not a veterinary diagnosis. Always seek professional veterinary advice for your pet\'s health.',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    fontFamily: 'Poppins',
                                     color: Colors.amber.shade800,
                                     height: 1.5,
                                   ),
@@ -265,7 +258,6 @@ class AnalysisResultView extends StatelessWidget {
                             label: const Text(
                               'Book Vet Appointment',
                               style: TextStyle(
-                                fontFamily: 'Poppins',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                                 color: Colors.white,
@@ -279,7 +271,7 @@ class AnalysisResultView extends StatelessWidget {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _purple,
+                              backgroundColor: AppColors.primary,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16)),
@@ -314,7 +306,7 @@ class _SaveToLogButton extends StatefulWidget {
 }
 
 class _SaveToLogButtonState extends State<_SaveToLogButton> {
-  static const _purple = Color(0xFF8A2BE2);
+  
   bool _saved = false;
   bool _saving = false;
 
@@ -325,16 +317,15 @@ class _SaveToLogButtonState extends State<_SaveToLogButton> {
       child: OutlinedButton.icon(
         icon: Icon(
           _saved ? Icons.check_circle : Icons.save_outlined,
-          color: _saved ? Colors.green : _purple,
+          color: _saved ? Colors.green : AppColors.primary,
           size: 20,
         ),
         label: Text(
           _saved ? 'Saved to Pet Log!' : 'Save to Pet Log',
           style: TextStyle(
-            fontFamily: 'Poppins',
             fontWeight: FontWeight.w600,
             fontSize: 15,
-            color: _saved ? Colors.green : _purple,
+            color: _saved ? Colors.green : AppColors.primary,
           ),
         ),
         onPressed: _saved || _saving
@@ -350,13 +341,13 @@ class _SaveToLogButtonState extends State<_SaveToLogButton> {
                 if (ok && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text(
+                      content: Text(
                         'Scan saved to pet log!',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                            fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+                            fontWeight: FontWeight.w600),
                       ),
-                      backgroundColor: _purple,
+                      backgroundColor: AppColors.primary,
                       behavior: SnackBarBehavior.floating,
                       margin: const EdgeInsets.all(24),
                       shape: RoundedRectangleBorder(
@@ -367,7 +358,7 @@ class _SaveToLogButtonState extends State<_SaveToLogButton> {
               },
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          side: BorderSide(color: _saved ? Colors.green : _purple, width: 1.5),
+          side: BorderSide(color: _saved ? Colors.green : AppColors.primary, width: 1.5),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),

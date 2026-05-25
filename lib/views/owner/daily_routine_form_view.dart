@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/pet_controller.dart';
 import '../../models/daily_routine_model.dart';
@@ -48,8 +49,8 @@ class _DailyRoutineFormViewState extends State<DailyRoutineFormView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Daily routine saved successfully!'),
-            backgroundColor: const Color(0xFF8A2BE2),
+            content: Text('Daily routine saved successfully!'),
+            backgroundColor: AppColors.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
@@ -62,12 +63,12 @@ class _DailyRoutineFormViewState extends State<DailyRoutineFormView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
-        title: const Text('Log Daily Routine', style: TextStyle(color: Color(0xFF333333), fontWeight: FontWeight.w600)),
+        title: Text('Log Daily Routine', style: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w600)),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF333333)),
+        iconTheme: const IconThemeData(color: AppColors.darkText),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -110,7 +111,7 @@ class _DailyRoutineFormViewState extends State<DailyRoutineFormView> {
                   ),
                 ),
                 
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 
                 TextFormField(
                   initialValue: _weight.toString(),
@@ -123,7 +124,7 @@ class _DailyRoutineFormViewState extends State<DailyRoutineFormView> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF8A2BE2), width: 2),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
                     ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -156,7 +157,7 @@ class _DailyRoutineFormViewState extends State<DailyRoutineFormView> {
                   onSaved: (value) => _activityLevel = value!,
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 
                 TextFormField(
                   decoration: InputDecoration(
@@ -169,7 +170,7 @@ class _DailyRoutineFormViewState extends State<DailyRoutineFormView> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF8A2BE2), width: 2),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
                     ),
                   ),
                   maxLines: 4,
@@ -189,7 +190,7 @@ class _DailyRoutineFormViewState extends State<DailyRoutineFormView> {
                     _submitForm();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8A2BE2),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

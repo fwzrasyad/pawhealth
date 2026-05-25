@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/pet_controller.dart';
 import '../../../models/pet_model.dart';
@@ -10,8 +11,8 @@ import 'add_edit_pet_view.dart';
 class PetDetailView extends StatelessWidget {
   const PetDetailView({super.key});
 
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class PetDetailView extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       body: Stack(
         children: [
           // Hero photo area
@@ -34,7 +35,7 @@ class PetDetailView extends StatelessWidget {
             height: MediaQuery.of(context).size.height * 0.35,
             child: Container(
               decoration: BoxDecoration(
-                color: _lightPurple,
+                color: AppColors.chipBg,
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(32),
                   bottomRight: Radius.circular(32),
@@ -71,7 +72,6 @@ class PetDetailView extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              fontFamily: 'Poppins',
                               color: Colors.black,
                             ),
                           ),
@@ -83,8 +83,7 @@ class PetDetailView extends StatelessWidget {
                             style: TextStyle(
                               color: Colors.grey.shade500,
                               fontSize: 14,
-                              fontFamily: 'Poppins',
-                            ),
+                              ),
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -100,7 +99,6 @@ class PetDetailView extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
                             color: Colors.black,
                           ),
                         ),
@@ -123,7 +121,7 @@ class PetDetailView extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.9),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -142,10 +140,10 @@ class PetDetailView extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.9),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
-                icon: const Icon(Icons.edit_outlined, color: _purple),
+                icon: Icon(Icons.edit_outlined, color: AppColors.primary),
                 onPressed: () {
                   print('redirect');
                   Navigator.push(
@@ -214,7 +212,7 @@ class PetDetailView extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8F9FA),
+            color: AppColors.lightSurface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.shade100),
           ),
@@ -223,7 +221,7 @@ class PetDetailView extends StatelessWidget {
             children: [
               Icon(
                 item['icon'] as IconData,
-                color: const Color(0xFF8A2BE2),
+                color: AppColors.primary,
                 size: 20,
               ),
               const SizedBox(height: 6),
@@ -232,8 +230,7 @@ class PetDetailView extends StatelessWidget {
                 style: TextStyle(
                   color: Colors.grey.shade500,
                   fontSize: 10,
-                  fontFamily: 'Poppins',
-                ),
+                  ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 3),
@@ -243,8 +240,7 @@ class PetDetailView extends StatelessWidget {
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 11,
-                  fontFamily: 'Poppins',
-                ),
+                  ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -301,7 +297,7 @@ class PetDetailView extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFF3E8FF), width: 1.5),
+              border: Border.all(color: AppColors.chipBg, width: 1.5),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.04),
@@ -314,13 +310,13 @@ class PetDetailView extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(14),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF3E8FF),
-                    shape: BoxShape.circle,
+                  decoration: BoxDecoration(
+                    color: AppColors.chipBg,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     a['icon'] as IconData,
-                    color: const Color(0xFF8A2BE2),
+                    color: AppColors.primary,
                     size: 22,
                   ),
                 ),
@@ -334,7 +330,6 @@ class PetDetailView extends StatelessWidget {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          fontFamily: 'Poppins',
                           color: Colors.black,
                         ),
                       ),
@@ -344,8 +339,7 @@ class PetDetailView extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.grey.shade500,
                           fontSize: 12,
-                          fontFamily: 'Poppins',
-                        ),
+                          ),
                       ),
                     ],
                   ),

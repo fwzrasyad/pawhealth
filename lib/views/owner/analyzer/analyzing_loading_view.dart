@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/smart_analyzer_controller.dart';
 import 'analysis_result_view.dart';
@@ -12,8 +13,8 @@ class AnalyzingLoadingView extends StatefulWidget {
 
 class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
     with SingleTickerProviderStateMixin {
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -72,32 +73,31 @@ class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
                   width: 160,
                   height: 160,
                   decoration: BoxDecoration(
-                    color: _lightPurple,
-                    shape: BoxShape.circle,
+                    color: AppColors.chipBg,
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: _purple.withValues(alpha: 0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                         blurRadius: 30,
                         spreadRadius: 10,
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.document_scanner_outlined,
                     size: 72,
-                    color: _purple,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 48),
+              SizedBox(height: 48),
 
-              const Text(
+              Text(
                 'Analyzing Symptoms...',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Poppins',
                   color: Colors.black,
                 ),
                 textAlign: TextAlign.center,
@@ -107,7 +107,6 @@ class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
                 'Our AI is carefully reviewing the image for visible symptoms. This takes just a moment.',
                 style: TextStyle(
                   fontSize: 14,
-                  fontFamily: 'Poppins',
                   color: Colors.grey.shade500,
                   height: 1.6,
                 ),
@@ -121,7 +120,7 @@ class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
                 width: 44,
                 height: 44,
                 child: CircularProgressIndicator(
-                  color: _purple,
+                  color: AppColors.primary,
                   strokeWidth: 3,
                 ),
               ),
@@ -141,14 +140,13 @@ class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F9FA),
+                  color: AppColors.lightSurface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '🔒  Your photo is processed locally and never stored on external servers.',
                   style: TextStyle(
                     fontSize: 12,
-                    fontFamily: 'Poppins',
                     color: Colors.grey.shade500,
                   ),
                   textAlign: TextAlign.center,
@@ -168,14 +166,13 @@ class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
         Icon(
           done ? Icons.check_circle : Icons.radio_button_unchecked,
           size: 18,
-          color: done ? _purple : Colors.grey.shade400,
+          color: done ? AppColors.primary : Colors.grey.shade400,
         ),
         const SizedBox(width: 10),
         Text(
           label,
           style: TextStyle(
             fontSize: 13,
-            fontFamily: 'Poppins',
             color: done ? Colors.black : Colors.grey.shade400,
           ),
         ),

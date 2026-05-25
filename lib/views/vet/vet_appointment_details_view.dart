@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/vet_controller.dart';
@@ -14,8 +15,8 @@ class VetAppointmentDetailsView extends StatefulWidget {
 }
 
 class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   late Appointment _appointment;
   MedicalRecord? _existingRecord;
@@ -96,14 +97,14 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Start Consultation', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold)),
-        content: const Text('This will mark the appointment as completed and allow you to write clinical notes.', style: TextStyle(fontFamily: 'Poppins', fontSize: 14)),
+        title: Text('Start Consultation', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('This will mark the appointment as completed and allow you to write clinical notes.', style: TextStyle(fontSize: 14)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade600))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600))),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: _purple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            child: const Text('Confirm', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: const Text('Confirm', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           ),
         ],
       ),
@@ -119,7 +120,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
         _processing = false;
         _loadingRecord = false;
       });
-      _showSnackBar('Consultation started — write your notes below', Icons.edit_note, _purple);
+      _showSnackBar('Consultation started — write your notes below', Icons.edit_note, AppColors.primary);
     }
   }
 
@@ -158,7 +159,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       content: Row(children: [
         Icon(icon, color: Colors.white, size: 18),
         const SizedBox(width: 10),
-        Expanded(child: Text(message, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600))),
+        Expanded(child: Text(message, style: const TextStyle(fontWeight: FontWeight.w600))),
       ]),
       backgroundColor: color,
       behavior: SnackBarBehavior.floating,
@@ -170,7 +171,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       body: CustomScrollView(
         slivers: [
           _buildAppBar(),
@@ -198,13 +199,12 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
     return SliverAppBar(
       expandedHeight: 180,
       pinned: true,
-      backgroundColor: _purple,
-      iconTheme: const IconThemeData(color: Colors.white),
+      backgroundColor: AppColors.primary,
+      iconTheme: const IconThemeData(color: AppColors.darkText),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF8A2BE2), Color(0xFF6B21A8)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-          ),
+            ),
           child: SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -212,12 +212,12 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
                 const SizedBox(height: 36),
                 Container(
                   width: 64, height: 64,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
                   child: const Center(child: Text('🐾', style: TextStyle(fontSize: 32))),
                 ),
                 const SizedBox(height: 10),
-                Text(_appointment.petName, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)),
-                Text('Appointment Details', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.white.withValues(alpha: 0.8))),
+                Text(_appointment.petName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)),
+                Text('Appointment Details', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8))),
               ],
             ),
           ),
@@ -239,7 +239,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: statusConfig.iconBg, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: statusConfig.iconBg, borderRadius: BorderRadius.circular(12)),
             child: Icon(statusConfig.icon, color: statusConfig.iconColor, size: 20),
           ),
           const SizedBox(width: 14),
@@ -247,9 +247,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(statusConfig.title, style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 14, color: statusConfig.textColor)),
+                Text(statusConfig.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: statusConfig.textColor)),
                 const SizedBox(height: 2),
-                Text(statusConfig.subtitle, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: statusConfig.textColor.withValues(alpha: 0.7))),
+                Text(statusConfig.subtitle, style: TextStyle(fontSize: 12, color: statusConfig.textColor.withValues(alpha: 0.7))),
               ],
             ),
           ),
@@ -269,7 +269,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Appointment Information', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+          const Text('Appointment Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
           const SizedBox(height: 16),
           _DetailRow(icon: Icons.pets, label: 'Pet', value: _appointment.petName),
           _DetailRow(icon: Icons.calendar_today, label: 'Date', value: DateFormat('EEEE, MMMM d, yyyy').format(_appointment.appointmentDate)),
@@ -298,15 +298,15 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Actions', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
-        const SizedBox(height: 14),
+        Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        SizedBox(height: 14),
         Row(
           children: [
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: _processing ? null : _handleDecline,
                 icon: const Icon(Icons.close, size: 18),
-                label: const Text('Decline', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 14)),
+                label: const Text('Decline', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red, side: const BorderSide(color: Colors.red),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -321,9 +321,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
                 icon: _processing
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.check, size: 18, color: Colors.white),
-                label: const Text('Approve', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
+                label: const Text('Approve', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple, elevation: 0,
+                  backgroundColor: AppColors.primary, elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
@@ -339,8 +339,8 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Actions', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16)),
-        const SizedBox(height: 14),
+        Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        SizedBox(height: 14),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -348,23 +348,23 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
             icon: _processing
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                 : const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
-            label: const Text('Start Consultation', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+            label: const Text('Start Consultation', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF16A34A), elevation: 0,
+              backgroundColor: AppColors.healthGreen, elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
         ),
         const SizedBox(height: 10),
-        Center(child: Text('Marks appointment as completed and unlocks clinical notes', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500))),
+        Center(child: Text('Marks appointment as completed and unlocks clinical notes', style: TextStyle(fontSize: 12, color: Colors.grey.shade500))),
       ],
     );
   }
 
   Widget _buildCompletedSection() {
     if (_loadingRecord) {
-      return const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: _purple)));
+      return Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: AppColors.primary)));
     }
     if (_notesSubmitted && _existingRecord != null) {
       return _buildReadOnlyNotes(_existingRecord!);
@@ -386,13 +386,13 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
           children: [
             Row(
               children: [
-                Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: _lightPurple, shape: BoxShape.circle), child: const Icon(Icons.edit_note, color: _purple, size: 20)),
-                const SizedBox(width: 12),
-                const Text('Clinical Notes', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 18)),
+                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(12)), child: Icon(Icons.edit_note, color: AppColors.primary, size: 20)),
+                SizedBox(width: 12),
+                Text('Clinical Notes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               ],
             ),
             const SizedBox(height: 6),
-            Text('Complete the consultation notes for this visit', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade500)),
+            Text('Complete the consultation notes for this visit', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
             const SizedBox(height: 20),
             _buildFormField(controller: _diagnosisCtrl, label: 'Diagnosis', hint: 'e.g. Upper respiratory infection', icon: Icons.medical_information_outlined, validator: (v) => (v == null || v.trim().isEmpty) ? 'Diagnosis is required' : null),
             const SizedBox(height: 16),
@@ -409,9 +409,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
                 icon: _processing
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.save_outlined, color: Colors.white),
-                label: const Text('Submit Clinical Notes', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+                label: const Text('Submit Clinical Notes', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple, elevation: 0,
+                  backgroundColor: AppColors.primary, elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -436,9 +436,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       children: [
         Row(
           children: [
-            Icon(icon, size: 16, color: _purple),
-            const SizedBox(width: 6),
-            Text(label, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black)),
+            Icon(icon, size: 16, color: AppColors.primary),
+            SizedBox(width: 6),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black)),
           ],
         ),
         const SizedBox(height: 8),
@@ -446,14 +446,14 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
           controller: controller,
           maxLines: maxLines,
           validator: validator,
-          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
+          style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade400),
-            filled: true, fillColor: const Color(0xFFF8F9FA),
+            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+            filled: true, fillColor: AppColors.lightSurface,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: _purple, width: 2)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
@@ -473,9 +473,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
         children: [
           Row(
             children: [
-              Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Color(0xFFDCFCE7), shape: BoxShape.circle), child: const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 20)),
-              const SizedBox(width: 12),
-              const Expanded(child: Text('Clinical Notes Submitted', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF16A34A)))),
+              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.healthGreenBg, borderRadius: BorderRadius.circular(12)), child: Icon(Icons.check_circle, color: AppColors.healthGreen, size: 20)),
+              SizedBox(width: 12),
+              const Expanded(child: Text('Clinical Notes Submitted', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.healthGreen))),
             ],
           ),
           const SizedBox(height: 18),
@@ -497,9 +497,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       children: [
         Row(
           children: [
-            const Icon(Icons.medication_outlined, size: 16, color: _purple),
-            const SizedBox(width: 6),
-            const Text('Medications Prescribed', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black)),
+            Icon(Icons.medication_outlined, size: 16, color: AppColors.primary),
+            SizedBox(width: 6),
+            Text('Medications Prescribed', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black)),
           ],
         ),
         const SizedBox(height: 8),
@@ -508,9 +508,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
           runSpacing: 8,
           children: [
             ..._medications.map((med) => Chip(
-                  label: Text(med, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: _purple)),
-                  backgroundColor: _lightPurple,
-                  deleteIcon: const Icon(Icons.close, size: 14, color: _purple),
+                  label: Text(med, style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                  backgroundColor: AppColors.chipBg,
+                  deleteIcon: Icon(Icons.close, size: 14, color: AppColors.primary),
                   onDeleted: () {
                     setState(() {
                       _medications.remove(med);
@@ -518,8 +518,8 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
                   },
                 )),
             ActionChip(
-              label: const Text('Add Medication', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.white)),
-              backgroundColor: _purple,
+              label: Text('Add Medication', style: TextStyle(fontSize: 12, color: Colors.white)),
+              backgroundColor: AppColors.primary,
               avatar: const Icon(Icons.add, size: 14, color: Colors.white),
               onPressed: () => _showAddMedicationDialog(),
             ),
@@ -535,21 +535,21 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       builder: (ctx) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Add Medication', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 18)),
+          title: Text('Add Medication', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           content: TextField(
             controller: _medicationsCtrl,
             decoration: InputDecoration(
               hintText: 'e.g. Amoxicillin 250mg',
-              hintStyle: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade400),
+              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
               filled: true,
-              fillColor: const Color(0xFFF8F9FA),
+              fillColor: AppColors.lightSurface,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel', style: TextStyle(fontFamily: 'Poppins', color: Colors.grey.shade600)),
+              child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -561,8 +561,8 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
                 }
                 Navigator.pop(ctx);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: _purple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-              child: const Text('Add', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ],
         );
@@ -575,26 +575,26 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       case AppointmentStatus.pending:
         return _StatusConfig(
           title: 'Pending Approval', subtitle: 'This appointment is waiting for your response',
-          icon: Icons.pending_actions, bgColor: const Color(0xFFFFF7ED), borderColor: const Color(0xFFFDE68A),
-          iconBg: const Color(0xFFFEF3C7), iconColor: const Color(0xFFEA580C), textColor: const Color(0xFFB45309),
+          icon: Icons.pending_actions, bgColor: AppColors.pendingBg, borderColor: const Color(0xFFFDE68A),
+          iconBg: AppColors.pendingBg, iconColor: AppColors.pendingText, textColor: AppColors.pendingText,
         );
       case AppointmentStatus.confirmed:
         return _StatusConfig(
           title: 'Confirmed', subtitle: 'Ready for consultation',
-          icon: Icons.event_available, bgColor: const Color(0xFFEFF6FF), borderColor: const Color(0xFFBFDBFE),
-          iconBg: const Color(0xFFDBEAFE), iconColor: const Color(0xFF2563EB), textColor: const Color(0xFF1E40AF),
+          icon: Icons.event_available, bgColor: AppColors.confirmedBg, borderColor: const Color(0xFFBFDBFE),
+          iconBg: const Color(0xFFDBEAFE), iconColor: AppColors.confirmedText, textColor: AppColors.confirmedText,
         );
       case AppointmentStatus.completed:
         return _StatusConfig(
           title: 'Completed', subtitle: 'Consultation finished',
-          icon: Icons.check_circle_outline, bgColor: const Color(0xFFF0FDF4), borderColor: const Color(0xFFBBF7D0),
-          iconBg: const Color(0xFFDCFCE7), iconColor: const Color(0xFF16A34A), textColor: const Color(0xFF166534),
+          icon: Icons.check_circle_outline, bgColor: AppColors.completedBg, borderColor: const Color(0xFFBBF7D0),
+          iconBg: AppColors.healthGreenBg, iconColor: AppColors.healthGreen, textColor: AppColors.completedText,
         );
       case AppointmentStatus.cancelled:
         return _StatusConfig(
           title: 'Cancelled', subtitle: 'This appointment was declined',
-          icon: Icons.cancel_outlined, bgColor: const Color(0xFFFEF2F2), borderColor: const Color(0xFFFECACA),
-          iconBg: const Color(0xFFFEE2E2), iconColor: Colors.red, textColor: const Color(0xFF991B1B),
+          icon: Icons.cancel_outlined, bgColor: AppColors.cancelledBg, borderColor: const Color(0xFFFECACA),
+          iconBg: const Color(0xFFFEE2E2), iconColor: Colors.red, textColor: AppColors.cancelledText,
         );
     }
   }
@@ -623,11 +623,11 @@ class _DetailRow extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 16, color: const Color(0xFF8A2BE2)),
+              Icon(icon, size: 16, color: AppColors.primary),
               const SizedBox(width: 10),
-              SizedBox(width: 60, child: Text(label, style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade500))),
+              SizedBox(width: 60, child: Text(label, style: TextStyle(fontSize: 13, color: Colors.grey.shade500))),
               const SizedBox(width: 8),
-              Expanded(child: Text(value, style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black))),
+              Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black))),
             ],
           ),
         ),
@@ -652,17 +652,17 @@ class _ReadOnlyField extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: const Color(0xFF8A2BE2)),
-              const SizedBox(width: 6),
-              Text(label, style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey.shade500)),
+              Icon(icon, size: 14, color: AppColors.primary),
+              SizedBox(width: 6),
+              Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey.shade500)),
             ],
           ),
           const SizedBox(height: 6),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: const Color(0xFFF8F9FA), borderRadius: BorderRadius.circular(12)),
-            child: Text(value, style: const TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black)),
+            decoration: BoxDecoration(color: AppColors.lightSurface, borderRadius: BorderRadius.circular(12)),
+            child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black)),
           ),
         ],
       ),

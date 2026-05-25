@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/smart_analyzer_controller.dart';
 import '../../../controllers/pet_controller.dart';
@@ -7,8 +8,8 @@ import 'analyzing_loading_view.dart';
 class SmartAnalyzerIntroView extends StatelessWidget {
   const SmartAnalyzerIntroView({super.key});
 
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   void _onPickImage(BuildContext context, ImagePickerSource source) async {
     final controller = context.read<SmartAnalyzerController>();
@@ -34,14 +35,13 @@ class SmartAnalyzerIntroView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Smart Analyzer',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Poppins',
             fontSize: 20,
           ),
         ),
@@ -59,28 +59,28 @@ class SmartAnalyzerIntroView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // Hero Icon Area
                     Container(
                       width: 140,
                       height: 140,
-                      decoration: const BoxDecoration(
-                        color: _lightPurple,
-                        shape: BoxShape.circle,
+                      decoration: BoxDecoration(
+                        color: AppColors.chipBg,
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          const Icon(Icons.search, size: 56, color: _purple),
+                          Icon(Icons.search, size: 56, color: AppColors.primary),
                           Positioned(
                             bottom: 26,
                             right: 26,
                             child: Container(
                               padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: _purple,
-                                shape: BoxShape.circle,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
                                 Icons.auto_fix_high,
@@ -100,7 +100,6 @@ class SmartAnalyzerIntroView extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Poppins',
                         color: Colors.black,
                       ),
                       textAlign: TextAlign.center,
@@ -111,7 +110,6 @@ class SmartAnalyzerIntroView extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
-                        fontFamily: 'Poppins',
                         height: 1.6,
                       ),
                       textAlign: TextAlign.center,
@@ -170,7 +168,6 @@ class SmartAnalyzerIntroView extends StatelessWidget {
                                   'Important Disclaimer',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    fontFamily: 'Poppins',
                                     color: Colors.amber.shade900,
                                     fontSize: 13,
                                   ),
@@ -180,7 +177,6 @@ class SmartAnalyzerIntroView extends StatelessWidget {
                                   'This tool provides a preliminary AI-based assessment only. It is NOT a substitute for a professional veterinary diagnosis. Always consult a licensed vet for medical decisions.',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    fontFamily: 'Poppins',
                                     color: Colors.amber.shade800,
                                     height: 1.5,
                                   ),
@@ -206,7 +202,6 @@ class SmartAnalyzerIntroView extends StatelessWidget {
                         label: const Text(
                           'Take Photo',
                           style: TextStyle(
-                            fontFamily: 'Poppins',
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.white,
@@ -215,7 +210,7 @@ class SmartAnalyzerIntroView extends StatelessWidget {
                         onPressed: () =>
                             _onPickImage(context, ImagePickerSource.camera),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _purple,
+                          backgroundColor: AppColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -228,25 +223,24 @@ class SmartAnalyzerIntroView extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.photo_library_outlined,
-                          color: _purple,
+                          color: AppColors.primary,
                           size: 20,
                         ),
                         label: const Text(
                           'Upload from Gallery',
                           style: TextStyle(
-                            fontFamily: 'Poppins',
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
-                            color: _purple,
+                            color: AppColors.primary,
                           ),
                         ),
                         onPressed: () =>
                             _onPickImage(context, ImagePickerSource.gallery),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: _purple, width: 1.5),
+                          side: const BorderSide(color: AppColors.primary, width: 1.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -270,18 +264,17 @@ class SmartAnalyzerIntroView extends StatelessWidget {
         Container(
           width: 52,
           height: 52,
-          decoration: const BoxDecoration(
-            color: _lightPurple,
-            shape: BoxShape.circle,
+          decoration: BoxDecoration(
+            color: AppColors.chipBg,
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: _purple, size: 24),
+          child: Icon(icon, color: AppColors.primary, size: 24),
         ),
         const SizedBox(height: 6),
         Text(
           label,
           style: TextStyle(
             fontSize: 11,
-            fontFamily: 'Poppins',
             color: Colors.grey.shade600,
           ),
           textAlign: TextAlign.center,

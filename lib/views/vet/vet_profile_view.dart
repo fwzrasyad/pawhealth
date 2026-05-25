@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/vet_controller.dart';
-import '../auth/login_view.dart';
+import '../auth/auth_wrapper.dart';
 import '../profile/edit_profile_view.dart';
 
 class VetProfileView extends StatefulWidget {
@@ -13,8 +14,8 @@ class VetProfileView extends StatefulWidget {
 }
 
 class _VetProfileViewState extends State<VetProfileView> {
-  static const _purple = Color(0xFF8A2BE2);
-  static const _lightPurple = Color(0xFFF3E8FF);
+  
+  
 
   final _bioController = TextEditingController();
   final _workingHoursController = TextEditingController();
@@ -80,13 +81,13 @@ class _VetProfileViewState extends State<VetProfileView> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Row(children: [
           Icon(success ? Icons.check_circle : Icons.error, color: Colors.white, size: 18),
-          const SizedBox(width: 10),
+          SizedBox(width: 10),
           Text(
             success ? 'Profile updated!' : 'Failed to update profile',
-            style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ]),
-        backgroundColor: success ? _purple : Colors.red.shade600,
+        backgroundColor: success ? AppColors.primary : Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(20),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -97,7 +98,7 @@ class _VetProfileViewState extends State<VetProfileView> {
   InputDecoration _fieldDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(fontFamily: 'Poppins', color: Colors.grey),
+      labelStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 20),
       filled: true,
       fillColor: Colors.white,
@@ -112,7 +113,7 @@ class _VetProfileViewState extends State<VetProfileView> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _purple, width: 2),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
     );
   }
@@ -125,7 +126,7 @@ class _VetProfileViewState extends State<VetProfileView> {
     final profile = vc.myProfile;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.lightSurface,
       body: CustomScrollView(
         slivers: [
           // ── Hero Header ──────────────────────────────────────────────
@@ -139,31 +140,25 @@ class _VetProfileViewState extends State<VetProfileView> {
               collapseMode: CollapseMode.pin,
               background: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF8A2BE2), Color(0xFF6B21A8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                   ),
-                ),
                 child: SafeArea(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       // Avatar
                       Container(
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 3),
                         ),
                         child: Center(
                           child: Text(
                             _initials(user?.name ?? 'D'),
                             style: const TextStyle(
-                              fontFamily: 'Poppins',
                               fontWeight: FontWeight.bold,
                               fontSize: 28,
                               color: Colors.white,
@@ -174,12 +169,12 @@ class _VetProfileViewState extends State<VetProfileView> {
                       const SizedBox(height: 12),
                       Text(
                         user?.name ?? 'Doctor',
-                        style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         user?.email ?? '',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
+                        style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8)),
                       ),
                     ],
                   ),
@@ -199,7 +194,7 @@ class _VetProfileViewState extends State<VetProfileView> {
                   _SectionCard(
                     title: 'Professional Profile',
                     trailing: IconButton(
-                      icon: Icon(_isEditing ? Icons.close : Icons.edit, color: _purple, size: 20),
+                      icon: Icon(_isEditing ? Icons.close : Icons.edit, color: AppColors.primary, size: 20),
                       onPressed: () => setState(() => _isEditing = !_isEditing),
                     ),
                     children: [
@@ -208,7 +203,7 @@ class _VetProfileViewState extends State<VetProfileView> {
                         TextFormField(
                           controller: _bioController,
                           decoration: _fieldDecoration('Bio / About', Icons.info_outline),
-                          style: const TextStyle(fontFamily: 'Poppins'),
+                          style: const TextStyle(),
                           maxLines: 3,
                         ),
                         const SizedBox(height: 16),
@@ -217,21 +212,21 @@ class _VetProfileViewState extends State<VetProfileView> {
                         TextFormField(
                           controller: _workingHoursController,
                           decoration: _fieldDecoration('Working Hours', Icons.access_time),
-                          style: const TextStyle(fontFamily: 'Poppins'),
+                          style: const TextStyle(),
                         ),
                         const SizedBox(height: 16),
 
                         // Specialties editor
-                        const Text('Specialties',
-                            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black)),
+                        Text('Specialties',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black)),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: _specialties.map((s) => Chip(
-                            label: Text(s, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: _purple)),
-                            backgroundColor: _lightPurple,
-                            deleteIcon: const Icon(Icons.close, size: 16, color: _purple),
+                            label: Text(s, style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                            backgroundColor: AppColors.chipBg,
+                            deleteIcon: Icon(Icons.close, size: 16, color: AppColors.primary),
                             onDeleted: () => _removeSpecialty(s),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                             side: BorderSide.none,
@@ -245,21 +240,21 @@ class _VetProfileViewState extends State<VetProfileView> {
                                 controller: _specialtyInputController,
                                 decoration: InputDecoration(
                                   hintText: 'Add specialty...',
-                                  hintStyle: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade400),
+                                  hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
                                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
-                                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _purple, width: 2)),
+                                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
-                                style: const TextStyle(fontFamily: 'Poppins', fontSize: 13),
+                                style: const TextStyle(fontSize: 13),
                                 onSubmitted: (_) => _addSpecialty(),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Container(
-                              decoration: BoxDecoration(color: _purple, borderRadius: BorderRadius.circular(12)),
+                              decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(12)),
                               child: IconButton(
                                 icon: const Icon(Icons.add, color: Colors.white, size: 20),
                                 onPressed: _addSpecialty,
@@ -275,8 +270,8 @@ class _VetProfileViewState extends State<VetProfileView> {
                           child: ElevatedButton(
                             onPressed: _isSaving ? null : _saveProfile,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: _purple,
-                              disabledBackgroundColor: _lightPurple,
+                              backgroundColor: AppColors.primary,
+                              disabledBackgroundColor: AppColors.chipBg,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -284,7 +279,7 @@ class _VetProfileViewState extends State<VetProfileView> {
                             child: _isSaving
                                 ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                                 : const Text('Save Changes',
-                                    style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
                           ),
                         ),
                       ] else ...[
@@ -294,19 +289,19 @@ class _VetProfileViewState extends State<VetProfileView> {
                         _InfoRow(icon: Icons.access_time, label: 'Working Hours', value: profile?.workingHours ?? 'Not set'),
                         const SizedBox(height: 12),
                         const Text('Specialties',
-                            style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
+                            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.grey)),
                         const SizedBox(height: 8),
                         if (profile?.specialties.isEmpty ?? true)
                           Text('No specialties added yet',
-                              style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade400))
+                              style: TextStyle(fontSize: 13, color: Colors.grey.shade400))
                         else
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: (profile?.specialties ?? []).map((s) => Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(color: _lightPurple, borderRadius: BorderRadius.circular(20)),
-                              child: Text(s, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w600, color: _purple)),
+                              decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(20)),
+                              child: Text(s, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
                             )).toList(),
                           ),
                       ],
@@ -351,12 +346,16 @@ class _VetProfileViewState extends State<VetProfileView> {
                       onPressed: () async {
                         await context.read<AuthController>().logout();
                         if (context.mounted) {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginView()));
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AuthWrapper()),
+                            (route) => false,
+                          );
                         }
                       },
                       icon: const Icon(Icons.logout, color: Colors.red, size: 20),
                       label: const Text('Log Out',
-                          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 15, color: Colors.red)),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.red)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red),
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -405,7 +404,7 @@ class _SectionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(title, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
               const Spacer(),
               if (trailing != null) trailing!,
             ],
@@ -430,15 +429,15 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF8A2BE2)),
+        Icon(icon, size: 18, color: AppColors.primary),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500)),
+              Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
               const SizedBox(height: 2),
-              Text(value, style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black)),
+              Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black)),
             ],
           ),
         ),
@@ -467,16 +466,16 @@ class _SettingsTile extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: const Color(0xFFF3E8FF), borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, size: 18, color: const Color(0xFF8A2BE2)),
+              decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, size: 18, color: AppColors.primary),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black)),
-                  Text(subtitle, style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black)),
+                  Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
