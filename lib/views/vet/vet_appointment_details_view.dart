@@ -386,7 +386,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
           children: [
             Row(
               children: [
-                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(12)), child: Icon(Icons.edit_note, color: AppColors.primary, size: 20)),
+                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)), child: Icon(Icons.edit_note, color: AppColors.primary, size: 20)),
                 SizedBox(width: 12),
                 Text('Clinical Notes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               ],

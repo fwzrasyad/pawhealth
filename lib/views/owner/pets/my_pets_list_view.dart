@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/auth_controller.dart';
@@ -280,9 +281,21 @@ class _PetCard extends StatelessWidget {
                 color: const Color(0xFFF3EFFF),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Center(
-                child: Text(_emoji, style: const TextStyle(fontSize: 24)),
-              ),
+              clipBehavior: Clip.hardEdge,
+              child: (pet.profileImageUrl != null && pet.profileImageUrl.isNotEmpty)
+                  ? CachedNetworkImage(
+                      imageUrl: pet.profileImageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      errorWidget: (context, url, error) => Center(
+                        child: Text(_emoji, style: const TextStyle(fontSize: 24)),
+                      ),
+                    )
+                  : Center(
+                      child: Text(_emoji, style: const TextStyle(fontSize: 24)),
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(

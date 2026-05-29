@@ -1,7 +1,10 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -11,13 +14,11 @@ class EditProfileView extends StatefulWidget {
 }
 
 class _EditProfileViewState extends State<EditProfileView> {
-  
-  
-
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   bool _isSaving = false;
+  File? _selectedImage;
 
   @override
   void initState() {
@@ -32,6 +33,21 @@ class _EditProfileViewState extends State<EditProfileView> {
     _nameController.dispose();
     _phoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+      maxWidth: 800,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
   }
 
   InputDecoration _fieldDecoration(String label, IconData icon) {
@@ -75,6 +91,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     await auth.updateUserProfile(
       _nameController.text.trim(),
       _phoneController.text.trim(),
+      profileImage: _selectedImage,
     );
 
     setState(() => _isSaving = false);
@@ -131,39 +148,79 @@ class _EditProfileViewState extends State<EditProfileView> {
           key: _formKey,
           child: Column(
             children: [
-              // Avatar
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Consumer<AuthController>(
-                    builder: (context, auth, _) {
-                      final name = auth.currentUser?.name ?? 'U';
-                      final parts = name.trim().split(' ');
-                      final initials = parts.length >= 2
-                          ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
-                          : name[0].toUpperCase();
-                      return Text(
-                        initials,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30,
-                          color: Colors.white,
+              // Avatar Stack
+              Consumer<AuthController>(
+                builder: (context, auth, _) {
+                  final user = auth.currentUser;
+                  final name = user?.name ?? 'U';
+                  final parts = name.trim().split(' ');
+                  final initials = parts.length >= 2
+                      ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+                      : name[0].toUpperCase();
+                  final imageUrl = user?.profileImageUrl;
+
+                  return GestureDetector(
+                    onTap: _pickImage,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.3),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          clipBehavior: Clip.hardEdge,
+                          child: _selectedImage != null
+                              ? Image.file(
+                                  _selectedImage!,
+                                  fit: BoxFit.cover,
+                                )
+                              : (imageUrl != null && imageUrl.isNotEmpty)
+                                  ? CachedNetworkImage(
+                                      imageUrl: imageUrl,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          const Center(child: CircularProgressIndicator()),
+                                      errorWidget: (context, url, error) =>
+                                          const Icon(Icons.error, color: Colors.white),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        initials,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 30,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                         ),
-                      );
-                    },
-                  ),
-                ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
               SizedBox(height: 8),
               Text(

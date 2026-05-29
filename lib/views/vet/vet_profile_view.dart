@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/vet_controller.dart';
 import '../auth/auth_wrapper.dart';
@@ -147,23 +148,57 @@ class _VetProfileViewState extends State<VetProfileView> {
                     children: [
                       SizedBox(height: 20),
                       // Avatar
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 3),
-                        ),
-                        child: Center(
-                          child: Text(
-                            _initials(user?.name ?? 'D'),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 28,
-                              color: Colors.white,
+                      GestureDetector(
+                        onTap: () => context.read<VetController>().uploadProfilePicture(),
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 3),
+                              ),
+                              clipBehavior: Clip.hardEdge,
+                              child: (user != null && vc.myProfile?.profileImageUrl != null && vc.myProfile!.profileImageUrl.isNotEmpty)
+                                  ? CachedNetworkImage(
+                                      imageUrl: vc.myProfile!.profileImageUrl,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => const Center(
+                                        child: CircularProgressIndicator(color: Colors.white),
+                                      ),
+                                      errorWidget: (context, url, error) => const Icon(
+                                        Icons.person_outline,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        _initials(user?.name ?? 'D'),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 28,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                             ),
-                          ),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: AppColors.primary,
+                                size: 14,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -466,7 +501,7 @@ class _SettingsTile extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, size: 18, color: AppColors.primary),
             ),
             const SizedBox(width: 14),

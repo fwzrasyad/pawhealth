@@ -302,11 +302,26 @@ class _DashboardContentState extends State<_DashboardContent> {
                     width: 48,
                     height: 48,
                     decoration: AppDecor.squareChip(),
-                    child: Icon(
-                      Icons.person_outline,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
+                    clipBehavior: Clip.hardEdge,
+                    child: (auth.currentUser?.profileImageUrl != null && auth.currentUser!.profileImageUrl!.isNotEmpty)
+                        ? CachedNetworkImage(
+                            imageUrl: auth.currentUser!.profileImageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            errorWidget: (context, url, error) => const Icon(
+                              Icons.person_outline,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.person_outline,
+                            color: AppColors.primary,
+                            size: 24,
+                          ),
                   ),
                 ),
               ],
@@ -358,6 +373,7 @@ class _DashboardContentState extends State<_DashboardContent> {
                             name: pet.name,
                             species: pet.species,
                             status: 'Healthy',
+                            profileImageUrl: pet.profileImageUrl,
                           ),
                         );
                       }).toList(),
@@ -791,12 +807,14 @@ class _QuickActionCard extends StatelessWidget {
 
 class _PetHealthCard extends StatelessWidget {
   final String emoji, name, species, status;
+  final String? profileImageUrl;
 
   const _PetHealthCard({
     required this.emoji,
     required this.name,
     required this.species,
     required this.status,
+    this.profileImageUrl,
   });
 
   @override
@@ -808,8 +826,25 @@ class _PetHealthCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(emoji, style: TextStyle(fontSize: 36)),
-          SizedBox(height: 8),
+          (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+              ? Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: CachedNetworkImage(
+                    imageUrl: profileImageUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    errorWidget: (context, url, error) => Text(emoji, style: const TextStyle(fontSize: 36)),
+                  ),
+                )
+              : Text(emoji, style: const TextStyle(fontSize: 36)),
+          const SizedBox(height: 8),
           Text(
             name,
             style: AppFonts.fraunces(fontSize: 16),

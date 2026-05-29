@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../controllers/pet_controller.dart';
 import '../../../models/pet_model.dart';
 import '../medical_record_list_view.dart';
@@ -10,9 +11,6 @@ import 'add_edit_pet_view.dart';
 
 class PetDetailView extends StatelessWidget {
   const PetDetailView({super.key});
-
-  
-  
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +25,7 @@ class PetDetailView extends StatelessWidget {
       backgroundColor: AppColors.lightSurface,
       body: Stack(
         children: [
-          // Hero photo area
+          // Hero photo area — DO NOT TOUCH
           Positioned(
             top: 0,
             left: 0,
@@ -41,12 +39,30 @@ class PetDetailView extends StatelessWidget {
                   bottomRight: Radius.circular(32),
                 ),
               ),
-              child: Center(
-                child: Text(
-                  _emoji(pet.species),
-                  style: const TextStyle(fontSize: 90),
-                ),
-              ),
+              clipBehavior: Clip.hardEdge,
+
+              child:
+                  (pet.profileImageUrl != null &&
+                      pet.profileImageUrl!.isNotEmpty)
+                  ? CachedNetworkImage(
+                      imageUrl: pet.profileImageUrl!,
+
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) => Center(
+                        child: Text(
+                          _emoji(pet.species),
+                          style: const TextStyle(fontSize: 90),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        _emoji(pet.species),
+                        style: const TextStyle(fontSize: 90),
+                      ),
+                    ),
             ),
           ),
 
@@ -72,7 +88,7 @@ class PetDetailView extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: Color(0xFF1A0F2E),
                             ),
                           ),
                         ),
@@ -80,10 +96,10 @@ class PetDetailView extends StatelessWidget {
                         Center(
                           child: Text(
                             '${pet.species} • ${pet.breed}',
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
+                            style: const TextStyle(
+                              color: Color(0xFF9B8CB8),
                               fontSize: 14,
-                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -94,15 +110,18 @@ class PetDetailView extends StatelessWidget {
                         const SizedBox(height: 32),
 
                         // Quick Actions Label
-                        const Text(
-                          'Quick Actions',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'QUICK ACTIONS',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF9B8CB8),
+                              letterSpacing: 0.08,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
 
                         // Quick Action Cards
                         _buildQuickActions(context, pet),
@@ -118,17 +137,31 @@ class PetDetailView extends StatelessWidget {
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
-                onPressed: () {
-                  controller.clearSelectedPet();
-                  Navigator.pop(context);
-                },
+            child: GestureDetector(
+              onTap: () {
+                controller.clearSelectedPet();
+                Navigator.pop(context);
+              },
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 8,
+                      color: Colors.black.withOpacity(0.1),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: Color(0xFF7C3AED),
+                    size: 18,
+                  ),
+                ),
               ),
             ),
           ),
@@ -137,22 +170,35 @@ class PetDetailView extends StatelessWidget {
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             right: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: Icon(Icons.edit_outlined, color: AppColors.primary),
-                onPressed: () {
-                  print('redirect');
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AddEditPetView(petToEdit: pet),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AddEditPetView(petToEdit: pet),
+                  ),
+                );
+              },
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 8,
+                      color: Colors.black.withOpacity(0.1),
                     ),
-                  );
-                },
+                  ],
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.edit_outlined,
+                    color: Color(0xFF7C3AED),
+                    size: 18,
+                  ),
+                ),
               ),
             ),
           ),
@@ -176,98 +222,121 @@ class PetDetailView extends StatelessWidget {
     }
   }
 
-  Widget _buildInfoGrid(Pet pet) {
-    final infoItems = [
-      {
-        'label': 'Species',
-        'value': pet.species,
-        'icon': Icons.category_outlined,
-      },
-      {
-        'label': 'Gender',
-        'value': pet.gender,
-        'icon': Icons.transgender_outlined,
-      },
-      {'label': 'Age', 'value': '${pet.age} yrs', 'icon': Icons.cake_outlined},
-      {'label': 'Breed', 'value': pet.breed, 'icon': Icons.pets_outlined},
-      {
-        'label': 'Weight',
-        'value': '${pet.weight} kg',
-        'icon': Icons.monitor_weight_outlined,
-      },
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.9,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEDE8F8)),
       ),
-      itemCount: infoItems.length,
-      itemBuilder: (context, index) {
-        final item = infoItems[index];
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.lightSurface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+            child: Center(
+              child: Icon(icon, color: const Color(0xFF7C3AED), size: 16),
+            ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          const SizedBox(height: 6),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF9B8CB8),
+              letterSpacing: 0.06,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A0F2E),
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoGrid(Pet pet) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          // Row 1: Species, Gender, Age
+          Row(
             children: [
-              Icon(
-                item['icon'] as IconData,
-                color: AppColors.primary,
-                size: 20,
+              Expanded(
+                child: _buildStatCard(
+                  icon: Icons.category_outlined,
+                  label: 'Species',
+                  value: pet.species,
+                ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                item['label'] as String,
-                style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 10,
-                  ),
-                textAlign: TextAlign.center,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildStatCard(
+                  icon: Icons.transgender_outlined,
+                  label: 'Gender',
+                  value: pet.gender,
+                ),
               ),
-              const SizedBox(height: 3),
-              Text(
-                item['value'] as String,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 11,
-                  ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildStatCard(
+                  icon: Icons.cake_outlined,
+                  label: 'Age',
+                  value: '${pet.age} yrs',
+                ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          // Row 2: Breed, Weight
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  icon: Icons.pets_outlined,
+                  label: 'Breed',
+                  value: pet.breed,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildStatCard(
+                  icon: Icons.monitor_weight_outlined,
+                  label: 'Weight',
+                  value: '${pet.weight} kg',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildQuickActions(BuildContext context, Pet pet) {
     final actions = [
-      // {
-      //   'icon': Icons.today_outlined,
-      //   'label': 'Log Daily\nRoutine',
-      //   'subtitle': 'Diet, Weight, Activity',
-      //   'onTap': () => Navigator.push(
-      //     context,
-      //     MaterialPageRoute(
-      //       builder: (_) => DailyRoutineFormView(petId: pet.petId),
-      //     ),
-      //   ),
-      // },
       {
         'icon': Icons.medical_services_outlined,
-        'label': 'Medical\nRecords',
+        'label': 'Medical Records',
         'subtitle': 'Vaccines, Docs',
         'onTap': () => Navigator.push(
           context,
@@ -276,7 +345,7 @@ class PetDetailView extends StatelessWidget {
       },
       {
         'icon': Icons.document_scanner_outlined,
-        'label': 'Smart\nAnalyzer',
+        'label': 'Smart Analyzer',
         'subtitle': 'AI Symptom Check',
         'onTap': () {
           Navigator.push(
@@ -292,59 +361,58 @@ class PetDetailView extends StatelessWidget {
         return GestureDetector(
           onTap: a['onTap'] as VoidCallback,
           child: Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.chipBg, width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFEDE8F8)),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  width: 38,
+                  height: 38,
                   decoration: BoxDecoration(
-                    color: AppColors.chipBg,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(11),
                   ),
-                  child: Icon(
-                    a['icon'] as IconData,
-                    color: AppColors.primary,
-                    size: 22,
+                  child: Center(
+                    child: Icon(
+                      a['icon'] as IconData,
+                      color: const Color(0xFF7C3AED),
+                      size: 18,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 20),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        (a['label'] as String).replaceAll('\n', ' '),
+                        a['label'] as String,
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A0F2E),
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         a['subtitle'] as String,
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
+                        style: const TextStyle(
                           fontSize: 12,
-                          ),
+                          color: Color(0xFF9B8CB8),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
+                const Icon(
+                  Icons.chevron_right,
+                  color: Color(0xFFC4B5FD),
+                  size: 18,
+                ),
               ],
             ),
           ),

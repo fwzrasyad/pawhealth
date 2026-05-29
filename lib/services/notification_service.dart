@@ -129,6 +129,9 @@ class NotificationService {
     try {
       final fcmToken = await _fcm.getToken();
       if (fcmToken != null) {
+        debugPrint('================ FCM TOKEN ================');
+        debugPrint(fcmToken);
+        debugPrint('===========================================');
         final api = ApiService();
         await api.post('/user/fcm-token', {'fcm_token': fcmToken}, userToken);
       }

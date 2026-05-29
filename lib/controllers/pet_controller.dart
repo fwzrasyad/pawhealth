@@ -2,15 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
-import '../services/storage_service.dart';
 import '../models/pet_model.dart';
 import '../models/daily_routine_model.dart';
 import '../models/health_journal_model.dart';
 
 class PetController extends ChangeNotifier {
   final ApiService _apiService = ApiService();
-  final StorageService _storageService = StorageService();
 
   List<Pet> _pets = [];
   Pet? _selectedPet;
@@ -210,22 +209,27 @@ class PetController extends ChangeNotifier {
       notifyListeners();
 
       final File imageFile = File(image.path);
-      final String downloadUrl = await _storageService.uploadPetProfileImage(petId, imageFile);
+      final token = await _getToken();
+      final multipartFile = await http.MultipartFile.fromPath('profile_image', imageFile.path);
 
+      final response = await _apiService.multipartPost(
+        '/pets/$petId',
+        token,
+        fields: {
+          '_method': 'PUT',
+        },
+        file: multipartFile,
+      );
+
+      final updated = Pet.fromJson(response['data'] ?? response);
       final index = _pets.indexWhere((p) => p.petId == petId);
       if (index != -1) {
-        final updatedPet = _pets[index].copyWith(profileImageUrl: downloadUrl);
-        await updatePet(updatedPet); 
-      } else {
-        final token = await _getToken();
-        await _apiService.put(
-          '/pets/$petId',
-          {'profile_image_url': downloadUrl},
-          token,
-        );
-        _isLoading = false;
-        notifyListeners();
+        _pets[index] = updated;
+        if (_selectedPet?.petId == petId) _selectedPet = updated;
       }
+
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
       debugPrint('Error uploading profile picture: $e');
       _isLoading = false;

@@ -39,6 +39,7 @@ class AuthWrapper extends StatelessWidget {
                 'assets/pawhealth_logo.png',
                 width: 120,
                 height: 120,
+                color: Colors.white,
               ),
               SizedBox(height: 32),
               CircularProgressIndicator(
@@ -48,10 +49,7 @@ class AuthWrapper extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 'PawHealth',
-                style: AppFonts.fraunces(
-                  fontSize: 22,
-                  color: Colors.white,
-                ),
+                style: AppFonts.fraunces(fontSize: 22, color: Colors.white),
               ),
             ],
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../controllers/vet_controller.dart';
 import '../../../models/appointment_model.dart';
 import '../../../models/medical_record_model.dart';
@@ -10,9 +11,6 @@ class VetPatientRecordView extends StatelessWidget {
   final Appointment appointment;
 
   const VetPatientRecordView({super.key, required this.appointment});
-
-  
-  
 
   String _emojiForSpecies(String species) {
     switch (species.toLowerCase()) {
@@ -73,12 +71,27 @@ class VetPatientRecordView extends StatelessWidget {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Center(
-                          child: Text(
-                            _emojiForSpecies(pet.species),
-                            style: const TextStyle(fontSize: 44),
-                          ),
-                        ),
+                        clipBehavior: Clip.hardEdge,
+                        child: (pet.profileImageUrl != null && pet.profileImageUrl!.isNotEmpty)
+                            ? CachedNetworkImage(
+                                imageUrl: pet.profileImageUrl!,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(color: Colors.white),
+                                ),
+                                errorWidget: (context, url, error) => Center(
+                                  child: Text(
+                                    _emojiForSpecies(pet.species),
+                                    style: const TextStyle(fontSize: 44),
+                                  ),
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  _emojiForSpecies(pet.species),
+                                  style: const TextStyle(fontSize: 44),
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -446,7 +459,6 @@ class _MedicalRecordCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.chipBg,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(

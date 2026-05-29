@@ -7,6 +7,7 @@ class User {
   final String password;
   final UserRole role;
   final String phoneNumber;
+  final String? profileImageUrl;
 
   User({
     required this.userId,
@@ -15,6 +16,7 @@ class User {
     required this.password,
     required this.role,
     required this.phoneNumber,
+    this.profileImageUrl,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -27,7 +29,8 @@ class User {
         (e) => e.name.toLowerCase() == (json['role'] as String).toLowerCase(),
         orElse: () => UserRole.owner,
       ),
-      phoneNumber: json['phone_number'] as String,
+      phoneNumber: json['phone_number'] as String? ?? '',
+      profileImageUrl: json['profile_image_url'] as String?,
     );
   }
 
@@ -39,6 +42,27 @@ class User {
       'password': password,
       'role': role.name,
       'phone_number': phoneNumber,
+      'profile_image_url': profileImageUrl,
     };
+  }
+
+  User copyWith({
+    String? userId,
+    String? name,
+    String? email,
+    String? password,
+    UserRole? role,
+    String? phoneNumber,
+    String? profileImageUrl,
+  }) {
+    return User(
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      role: role ?? this.role,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+    );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import '../models/user_model.dart';
@@ -188,8 +190,8 @@ class AuthController extends ChangeNotifier {
     return null;
   }
 
-  /// Updates the current user's display name and phone number.
-  Future<void> updateUserProfile(String name, String phone) async {
+  /// Updates the current user's display name, phone number, and optionally profile image.
+  Future<void> updateUserProfile(String name, String phone, {File? profileImage}) async {
     if (_currentUser == null) return;
     _isLoading = true;
     _profileUpdated = false;
@@ -199,12 +201,29 @@ class AuthController extends ChangeNotifier {
       await _authService.updateDisplayName(name);
 
       final token = await _getToken();
+      Map<String, dynamic> response;
 
-      // Sync updated profile to Laravel
-      final response = await _apiService.put('/auth/profile', {
-        'name': name.trim(),
-        'phone_number': phone.trim(),
-      }, token);
+      if (profileImage != null) {
+        // Sync updated profile to Laravel using multipart upload for image
+        final multipartFile = await http.MultipartFile.fromPath('profile_image', profileImage.path);
+        response = await _apiService.multipartPost(
+          '/auth/sync',
+          token,
+          fields: {
+            'name': name.trim(),
+            'phone_number': phone.trim(),
+            'email': _currentUser!.email,
+          },
+          file: multipartFile,
+        );
+      } else {
+        // Sync updated profile to Laravel without image
+        response = await _apiService.post('/auth/sync', {
+          'name': name.trim(),
+          'phone_number': phone.trim(),
+          'email': _currentUser!.email,
+        }, token);
+      }
 
       final userData = response['data'] ?? response;
       _currentUser = User.fromJson(userData);

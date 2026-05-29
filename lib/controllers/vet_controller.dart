@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../models/appointment_model.dart';
 import '../models/pet_model.dart';
@@ -154,6 +157,49 @@ class VetController extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  /// Uploads a new profile picture for the veterinarian.
+  Future<void> uploadProfilePicture() async {
+    if (_myProfile == null) return;
+
+    final ImagePicker picker = ImagePicker();
+    
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+        maxWidth: 800,
+      );
+
+      if (image == null) return;
+
+      _isLoading = true;
+      notifyListeners();
+
+      final File imageFile = File(image.path);
+      final token = await _getToken();
+      final multipartFile = await http.MultipartFile.fromPath('profile_image', imageFile.path);
+
+      final response = await _apiService.multipartPost(
+        '/veterinarians/${_myProfile!.vetId}',
+        token,
+        fields: {
+          '_method': 'PUT',
+        },
+        file: multipartFile,
+      );
+
+      final profileData = response['data'] ?? response;
+      _myProfile = Veterinarian.fromJson(profileData);
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error uploading vet profile picture: $e');
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

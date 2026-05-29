@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../controllers/auth_controller.dart';
 import '../../models/user_model.dart';
 import '../auth/auth_wrapper.dart';
@@ -25,6 +26,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
     final user = auth.currentUser;
+    final imageUrl = user?.profileImageUrl;
 
     return Scaffold(
       backgroundColor: _bg,
@@ -51,6 +53,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         width: 96,
                         height: 96,
                         decoration: BoxDecoration(
+                          color: AppColors.primary,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
@@ -60,16 +63,26 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            _initials(user?.name ?? 'U'),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 34,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+                        clipBehavior: Clip.hardEdge,
+                        child: (imageUrl != null && imageUrl.isNotEmpty)
+                            ? CachedNetworkImage(
+                                imageUrl: imageUrl,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) =>
+                                    const Center(child: CircularProgressIndicator()),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error, color: Colors.white),
+                              )
+                            : Center(
+                                child: Text(
+                                  _initials(user?.name ?? 'U'),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 34,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                       ),
                       const SizedBox(height: 14),
                       Text(

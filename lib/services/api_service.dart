@@ -106,4 +106,35 @@ class ApiService {
     if (response.body.isEmpty) return {};
     return jsonDecode(response.body);
   }
+
+  Future<Map<String, dynamic>> multipartPost(
+    String endpoint,
+    String? token, {
+    Map<String, String>? fields,
+    http.MultipartFile? file,
+  }) async {
+    final request = http.MultipartRequest('POST', Uri.parse('$_baseUrl$endpoint'));
+    
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    request.headers['Accept'] = 'application/json';
+
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+    if (file != null) {
+      request.files.add(file);
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed multipart request $endpoint: ${response.body}');
+    }
+
+    if (response.body.isEmpty) return {};
+    return jsonDecode(response.body);
+  }
 }
