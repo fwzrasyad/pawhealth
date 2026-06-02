@@ -15,6 +15,9 @@ class Appointment {
   final DateTime timeSlot;
   final AppointmentStatus status;
   final MedicalRecord? medicalRecord;
+  final double? amount;
+  final String? paymentIntentId;
+  final String? paymentStatus;
 
   Appointment({
     required this.appointmentId,
@@ -29,9 +32,12 @@ class Appointment {
     required this.timeSlot,
     required this.status,
     this.medicalRecord,
+    this.amount,
+    this.paymentIntentId,
+    this.paymentStatus,
   });
 
-  Appointment copyWith({AppointmentStatus? status, MedicalRecord? medicalRecord}) {
+  Appointment copyWith({AppointmentStatus? status, MedicalRecord? medicalRecord, String? paymentStatus}) {
     return Appointment(
       appointmentId: appointmentId,
       clinicId: clinicId,
@@ -45,6 +51,9 @@ class Appointment {
       timeSlot: timeSlot,
       status: status ?? this.status,
       medicalRecord: medicalRecord ?? this.medicalRecord,
+      amount: amount,
+      paymentIntentId: paymentIntentId,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
     );
   }
 
@@ -65,6 +74,9 @@ class Appointment {
         orElse: () => AppointmentStatus.pending,
       ),
       medicalRecord: json['medical_record'] != null ? MedicalRecord.fromJson(json['medical_record']) : null,
+      amount: json['amount'] != null ? double.tryParse(json['amount'].toString()) : null,
+      paymentIntentId: json['payment_intent_id']?.toString(),
+      paymentStatus: json['payment_status']?.toString(),
     );
   }
 
@@ -81,6 +93,9 @@ class Appointment {
       'appointment_date': appointmentDate.toIso8601String().split('T').join(' ').split('.')[0],
       'time_slot': timeSlot.toIso8601String().split('T').join(' ').split('.')[0],
       'status': status.name,
+      if (amount != null) 'amount': amount,
+      if (paymentIntentId != null) 'payment_intent_id': paymentIntentId,
+      if (paymentStatus != null) 'payment_status': paymentStatus,
     };
   }
 }

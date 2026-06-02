@@ -29,18 +29,13 @@ class AuthWrapper extends StatelessWidget {
     // Show a clean splash/spinner while Firebase resolves the persisted session.
     if (auth.isInitializing) {
       return Scaffold(
-        backgroundColor: AppColors.darkBg,
+        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // App logo
-              Image.asset(
-                'assets/pawhealth_logo.png',
-                width: 120,
-                height: 120,
-                color: Colors.white,
-              ),
+              Image.asset('assets/pawhealth_logo.png', width: 120, height: 120),
               SizedBox(height: 32),
               CircularProgressIndicator(
                 color: AppColors.primary,
@@ -49,7 +44,7 @@ class AuthWrapper extends StatelessWidget {
               const SizedBox(height: 20),
               Text(
                 'PawHealth',
-                style: AppFonts.fraunces(fontSize: 22, color: Colors.white),
+                style: AppFonts.fraunces(fontSize: 22, color: const Color(0xFF1A0F2E)),
               ),
             ],
           ),

@@ -16,6 +16,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'services/notification_service.dart';
 import 'views/owner/visits/visit_detail_view.dart';
 import 'models/appointment_model.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -29,6 +30,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
+  await Stripe.instance.applySettings();
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await NotificationService().init();
@@ -69,14 +73,18 @@ class PawHealthApp extends StatelessWidget {
       home: const AuthWrapper(),
       routes: {
         '/appointment-details': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>?;
           final id = args?['id'] as String?;
           final ctrl = context.watch<AppointmentController>();
           final allAppointments = [...ctrl.upcomingVisits, ...ctrl.pastVisits];
-          
+
           Appointment? appointment;
           try {
-            appointment = allAppointments.firstWhere((a) => a.appointmentId == id);
+            appointment = allAppointments.firstWhere(
+              (a) => a.appointmentId == id,
+            );
           } catch (_) {}
 
           if (appointment == null) {

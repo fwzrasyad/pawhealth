@@ -7,7 +7,7 @@ class ApiService {
 
   ApiService()
     // : _baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000';
-    : _baseUrl = 'http://10.0.2.2:8000/api';
+    : _baseUrl = 'https://pawhealth-backend-184555083635.us-central1.run.app/api';
 
   Future<dynamic> get(String endpoint, {String? token}) async {
     final response = await http.get(

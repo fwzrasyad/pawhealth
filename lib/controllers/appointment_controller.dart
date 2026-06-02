@@ -242,4 +242,93 @@ class AppointmentController extends ChangeNotifier {
 
     return success;
   }
+
+  // ── Payment API ───────────────────────────────────────────────────────────
+
+  Future<Map<String, dynamic>?> createPaymentIntent({
+    required String petId,
+    required String petName,
+    String? reason,
+  }) async {
+    if (_selectedClinic == null || _selectedVet == null || _selectedDate == null || _selectedTimeSlot == null) return null;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post(
+        '/payments/create-intent',
+        {
+          'clinic_id': _selectedClinic!.clinicId,
+          'clinic_name': _selectedClinic!.name,
+          'vet_id': _selectedVet!.vetId,
+          'vet_name': _selectedVet!.name,
+          'pet_id': petId,
+          'pet_name': petName,
+          'reason': reason ?? _reason,
+          'appointment_date': _selectedDate!.toIso8601String().split('T').join(' ').split('.')[0],
+          'time_slot': _selectedTimeSlot!.toIso8601String().split('T').join(' ').split('.')[0],
+        },
+        token,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      return response;
+    } catch (e) {
+      print('Error creating payment intent: $e');
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> confirmBookingWithPayment({
+    required String paymentIntentId,
+    required String petId,
+    required String petName,
+    String? reason,
+  }) async {
+    if (_selectedClinic == null || _selectedVet == null || _selectedDate == null || _selectedTimeSlot == null) return false;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post(
+        '/payments/confirm-booking',
+        {
+          'payment_intent_id': paymentIntentId,
+          'clinic_id': _selectedClinic!.clinicId,
+          'clinic_name': _selectedClinic!.name,
+          'vet_id': _selectedVet!.vetId,
+          'vet_name': _selectedVet!.name,
+          'pet_id': petId,
+          'pet_name': petName,
+          'reason': reason ?? _reason,
+          'appointment_date': _selectedDate!.toIso8601String().split('T').join(' ').split('.')[0],
+          'time_slot': _selectedTimeSlot!.toIso8601String().split('T').join(' ').split('.')[0],
+        },
+        token,
+      );
+
+      if (response != null && response['appointment'] != null) {
+        final created = Appointment.fromJson(response['appointment']);
+        _appointments.add(created);
+        
+        resetBookingForm();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      print('Error confirming booking: $e');
+    }
+
+    _isLoading = false;
+    notifyListeners();
+    return false;
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pawhealth/views/owner/pets/pet_detail_view.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
@@ -14,6 +15,7 @@ import '../../models/daily_routine_model.dart';
 import '../../utils/constants.dart';
 import '../profile/profile_settings_view.dart';
 import 'pets/my_pets_list_view.dart';
+import 'pets/pet_detail_view.dart';
 import 'booking/book_appointment_view.dart';
 import 'ai/ai_scanner_view.dart';
 import 'visits/my_visits_view.dart';
@@ -202,7 +204,9 @@ class _DashboardContentState extends State<_DashboardContent> {
 
   Future<void> _fetchNews() async {
     try {
-      final url = Uri.parse('https://newsapi.org/v2/everything?q=%22pet%20health%22%20OR%20%22dog%20health%22%20OR%20%22cat%20health%22&language=en&sortBy=relevancy&pageSize=10&apiKey=7d25372bd825421c8206ac9deeca4cfa');
+      final url = Uri.parse(
+        'https://newsapi.org/v2/everything?q=%22pet%20health%22%20OR%20%22dog%20health%22%20OR%20%22cat%20health%22&language=en&sortBy=relevancy&pageSize=10&apiKey=7d25372bd825421c8206ac9deeca4cfa',
+      );
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -218,10 +222,18 @@ class _DashboardContentState extends State<_DashboardContent> {
           });
         }
       } else {
-        if (mounted) setState(() { _isLoadingNews = false; _hasNewsError = true; });
+        if (mounted)
+          setState(() {
+            _isLoadingNews = false;
+            _hasNewsError = true;
+          });
       }
     } catch (e) {
-      if (mounted) setState(() { _isLoadingNews = false; _hasNewsError = true; });
+      if (mounted)
+        setState(() {
+          _isLoadingNews = false;
+          _hasNewsError = true;
+        });
     }
   }
 
@@ -281,13 +293,13 @@ class _DashboardContentState extends State<_DashboardContent> {
                     children: [
                       Text(
                         _greeting(),
-                        style: AppFonts.caption(fontSize: 13, color: AppColors.metaText),
+                        style: AppFonts.caption(
+                          fontSize: 13,
+                          color: AppColors.metaText,
+                        ),
                       ),
                       SizedBox(height: 2),
-                      Text(
-                        firstName,
-                        style: AppFonts.headline(fontSize: 26),
-                      ),
+                      Text(firstName, style: AppFonts.headline(fontSize: 26)),
                     ],
                   ),
                 ),
@@ -303,7 +315,9 @@ class _DashboardContentState extends State<_DashboardContent> {
                     height: 48,
                     decoration: AppDecor.squareChip(),
                     clipBehavior: Clip.hardEdge,
-                    child: (auth.currentUser?.profileImageUrl != null && auth.currentUser!.profileImageUrl!.isNotEmpty)
+                    child:
+                        (auth.currentUser?.profileImageUrl != null &&
+                            auth.currentUser!.profileImageUrl!.isNotEmpty)
                         ? CachedNetworkImage(
                             imageUrl: auth.currentUser!.profileImageUrl!,
                             fit: BoxFit.cover,
@@ -334,16 +348,12 @@ class _DashboardContentState extends State<_DashboardContent> {
 
             const SizedBox(height: 28),
 
-
-
             // ── Pet Health Summary ──────────────────────────────────
             Row(
               children: [
-                Text(
-                  "Pet Health",
-                  style: AppFonts.fraunces(fontSize: 18),
-                ),
+                Text("Pet Health", style: AppFonts.fraunces(fontSize: 18)),
                 const Spacer(),
+
                 Text(
                   'See all',
                   style: AppFonts.dmSans(
@@ -363,17 +373,28 @@ class _DashboardContentState extends State<_DashboardContent> {
                         Text(
                           'No pets added yet.',
                           style: AppFonts.body(color: AppColors.metaText),
-                        )
+                        ),
                       ]
                     : myPets.map((pet) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 12.0),
-                          child: _PetHealthCard(
-                            emoji: _getPetEmoji(pet.species),
-                            name: pet.name,
-                            species: pet.species,
-                            status: 'Healthy',
-                            profileImageUrl: pet.profileImageUrl,
+                        return GestureDetector(
+                          onTap: () {
+                            petCtrl.selectPet(pet);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PetDetailView(),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 12.0),
+                            child: _PetHealthCard(
+                              emoji: _getPetEmoji(pet.species),
+                              name: pet.name,
+                              species: pet.species,
+                              status: 'Healthy',
+                              profileImageUrl: pet.profileImageUrl,
+                            ),
                           ),
                         );
                       }).toList(),
@@ -386,7 +407,7 @@ class _DashboardContentState extends State<_DashboardContent> {
             Row(
               children: [
                 const Text(
-                  "Pet health news",
+                  "Pet Health News",
                   style: TextStyle(
                     fontFamily: 'Figtree',
                     fontWeight: FontWeight.w600,
@@ -394,20 +415,10 @@ class _DashboardContentState extends State<_DashboardContent> {
                     color: Color(0xFF1A0F2E),
                   ),
                 ),
-                const Spacer(),
-                const Text(
-                  'See all',
-                  style: TextStyle(
-                    fontFamily: 'Figtree',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: Color(0xFF7C3AED),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 14),
-            
+
             if (_isLoadingNews)
               SizedBox(
                 height: 220,
@@ -418,9 +429,7 @@ class _DashboardContentState extends State<_DashboardContent> {
                   itemBuilder: (context, index) {
                     return Container(
                       width: 200,
-                      margin: EdgeInsets.only(
-                        right: index == 2 ? 20 : 12,
-                      ),
+                      margin: EdgeInsets.only(right: index == 2 ? 20 : 12),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -433,7 +442,9 @@ class _DashboardContentState extends State<_DashboardContent> {
                             height: 100,
                             decoration: const BoxDecoration(
                               color: Color(0xFFF3EFFF),
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
                             ),
                           ),
                           Padding(
@@ -441,11 +452,23 @@ class _DashboardContentState extends State<_DashboardContent> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(height: 11, width: 80, color: const Color(0xFFF3EFFF)),
+                                Container(
+                                  height: 11,
+                                  width: 80,
+                                  color: const Color(0xFFF3EFFF),
+                                ),
                                 const SizedBox(height: 6),
-                                Container(height: 13, width: double.infinity, color: const Color(0xFFF3EFFF)),
+                                Container(
+                                  height: 13,
+                                  width: double.infinity,
+                                  color: const Color(0xFFF3EFFF),
+                                ),
                                 const SizedBox(height: 4),
-                                Container(height: 13, width: 100, color: const Color(0xFFF3EFFF)),
+                                Container(
+                                  height: 13,
+                                  width: 100,
+                                  color: const Color(0xFFF3EFFF),
+                                ),
                               ],
                             ),
                           ),
@@ -455,7 +478,9 @@ class _DashboardContentState extends State<_DashboardContent> {
                   },
                 ),
               )
-            else if (_hasNewsError || _newsArticles == null || _newsArticles!.isEmpty)
+            else if (_hasNewsError ||
+                _newsArticles == null ||
+                _newsArticles!.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 20),
                 child: Text(
@@ -476,10 +501,16 @@ class _DashboardContentState extends State<_DashboardContent> {
                       onTap: () async {
                         final uri = Uri.parse(article.url);
                         try {
-                          await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.inAppBrowserView,
+                          );
                         } catch (e) {
                           try {
-                            await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
                           } catch (_) {}
                         }
                       },
@@ -497,14 +528,17 @@ class _DashboardContentState extends State<_DashboardContent> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             ClipRRect(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
                               child: article.imageUrl != null
                                   ? CachedNetworkImage(
                                       imageUrl: article.imageUrl!,
                                       height: 100,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
-                                      errorWidget: (context, url, error) => _buildFallbackImage(),
+                                      errorWidget: (context, url, error) =>
+                                          _buildFallbackImage(),
                                     )
                                   : _buildFallbackImage(),
                             ),
@@ -736,10 +770,7 @@ class _UpcomingBanner extends StatelessWidget {
               const SizedBox(height: 14),
               Text(
                 next.reason,
-                style: AppFonts.fraunces(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
+                style: AppFonts.fraunces(color: Colors.white, fontSize: 18),
               ),
               const SizedBox(height: 4),
               Text(
@@ -752,10 +783,7 @@ class _UpcomingBanner extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Pet: ${next.petName}  ·  ${DateFormat('EEE, MMM d').format(next.appointmentDate)}',
-                style: AppFonts.dmSans(
-                  color: AppColors.metaText,
-                  fontSize: 12,
-                ),
+                style: AppFonts.dmSans(color: AppColors.metaText, fontSize: 12),
               ),
             ],
           ),
@@ -840,19 +868,14 @@ class _PetHealthCard extends StatelessWidget {
                     placeholder: (context, url) => const Center(
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                    errorWidget: (context, url, error) => Text(emoji, style: const TextStyle(fontSize: 36)),
+                    errorWidget: (context, url, error) =>
+                        Text(emoji, style: const TextStyle(fontSize: 36)),
                   ),
                 )
               : Text(emoji, style: const TextStyle(fontSize: 36)),
           const SizedBox(height: 8),
-          Text(
-            name,
-            style: AppFonts.fraunces(fontSize: 16),
-          ),
-          Text(
-            species,
-            style: AppFonts.caption(color: AppColors.metaText),
-          ),
+          Text(name, style: AppFonts.fraunces(fontSize: 16)),
+          Text(species, style: AppFonts.caption(color: AppColors.metaText)),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -863,7 +886,11 @@ class _PetHealthCard extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle, color: AppColors.healthGreen, size: 12),
+                Icon(
+                  Icons.check_circle,
+                  color: AppColors.healthGreen,
+                  size: 12,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   status,
@@ -961,6 +988,7 @@ class _RoutineItem extends StatelessWidget {
     );
   }
 }
+
 class NewsArticle {
   final String title;
   final String source;

@@ -12,6 +12,7 @@ class Veterinarian {
   /// values are lists of available time strings like ["09:00", "10:00"].
   final Map<String, List<String>> weeklySchedule;
   final List<DateTime> bookedSlots;
+  final double consultationFee;
 
   Veterinarian({
     required this.vetId,
@@ -22,6 +23,7 @@ class Veterinarian {
     this.bio = '',
     this.weeklySchedule = const {},
     this.bookedSlots = const [],
+    this.consultationFee = 0.0,
   });
 
   factory Veterinarian.fromJson(Map<String, dynamic> json) {
@@ -69,6 +71,7 @@ class Veterinarian {
       bio: json['bio']?.toString() ?? '',
       weeklySchedule: schedule,
       bookedSlots: parsedBookedSlots,
+      consultationFee: json['consultation_fee'] != null ? double.tryParse(json['consultation_fee'].toString()) ?? 0.0 : 0.0,
     );
   }
 
@@ -82,6 +85,7 @@ class Veterinarian {
       'bio': bio,
       'weekly_schedule': weeklySchedule,
       'booked_slots': bookedSlots.map((e) => e.toIso8601String()).toList(),
+      'consultation_fee': consultationFee,
     };
   }
 
@@ -94,6 +98,7 @@ class Veterinarian {
     String? bio,
     Map<String, List<String>>? weeklySchedule,
     List<DateTime>? bookedSlots,
+    double? consultationFee,
   }) {
     return Veterinarian(
       vetId: vetId ?? this.vetId,
@@ -104,6 +109,7 @@ class Veterinarian {
       bio: bio ?? this.bio,
       weeklySchedule: weeklySchedule ?? this.weeklySchedule,
       bookedSlots: bookedSlots ?? this.bookedSlots,
+      consultationFee: consultationFee ?? this.consultationFee,
     );
   }
 
