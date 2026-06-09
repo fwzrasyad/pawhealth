@@ -35,19 +35,18 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
           // ── Header ──────────────────────────────────────────────────────
           SliverAppBar(
             pinned: true,
-            expandedHeight: 260,
+            expandedHeight: 300,
             backgroundColor: Colors.white,
             elevation: 0,
             iconTheme: const IconThemeData(color: Colors.black),
             flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.pin,
+              collapseMode: CollapseMode.none,
               background: Container(
                 color: Colors.white,
                 child: SafeArea(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(height: 20),
+                      const SizedBox(height: 60),
                       // Avatar
                       Container(
                         width: 96,
@@ -136,7 +135,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 ),
               ),
             ),
-            title: Text(
+            title: const Text(
               'Profile & Settings',
               style: TextStyle(
                 fontWeight: FontWeight.bold,

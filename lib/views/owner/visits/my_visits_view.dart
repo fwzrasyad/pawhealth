@@ -14,7 +14,6 @@ class MyVisitsView extends StatefulWidget {
 }
 
 class _MyVisitsViewState extends State<MyVisitsView> {
-  
 
   @override
   void initState() {
@@ -29,46 +28,157 @@ class _MyVisitsViewState extends State<MyVisitsView> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: AppColors.lightSurface,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          title: Text('My Visits', style: AppFonts.headline(fontSize: 22)),
-          bottom: TabBar(
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.navInactive,
-            indicatorColor: AppColors.primary,
-            indicatorWeight: 3,
-            labelStyle: AppFonts.bodyBold(fontSize: 14),
-            unselectedLabelStyle: AppFonts.body(fontSize: 14),
-            tabs: const [
-              Tab(text: 'Upcoming'),
-              Tab(text: 'History'),
-            ],
-          ),
-        ),
-        body: Consumer<AppointmentController>(
-          builder: (context, ctrl, _) {
-            return TabBarView(
-              children: [
-                _AppointmentList(
-                  appointments: ctrl.upcomingVisits,
-                  emptyIcon: Icons.calendar_today_outlined,
-                  emptyMessage: 'No upcoming visits',
-                  emptySubtitle: 'Book a consultation to get started.',
+        backgroundColor: const Color(0xFF7C3AED),
+        body: Column(
+          children: [
+            _buildHero(),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF7F5FF),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
                 ),
-                _AppointmentList(
-                  appointments: ctrl.pastVisits,
-                  emptyIcon: Icons.history,
-                  emptyMessage: 'No past visits',
-                  emptySubtitle: 'Your completed appointments will appear here.',
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                  child: Column(
+                    children: [
+                      // Tab bar
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFEDE8F8)),
+                        ),
+                        child: TabBar(
+                          indicator: BoxDecoration(
+                            color: const Color(0xFF7C3AED),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          dividerColor: Colors.transparent,
+                          labelColor: Colors.white,
+                          unselectedLabelColor: const Color(0xFF9B8CB8),
+                          labelStyle: const TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          unselectedLabelStyle: const TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          tabs: const [
+                            Tab(text: 'Upcoming'),
+                            Tab(text: 'History'),
+                          ],
+                        ),
+                      ),
+                      // Tab content
+                      Expanded(
+                        child: Consumer<AppointmentController>(
+                          builder: (context, ctrl, _) {
+                            return TabBarView(
+                              children: [
+                                _AppointmentList(
+                                  appointments: ctrl.upcomingVisits,
+                                  emptyIcon: Icons.calendar_today_outlined,
+                                  emptyMessage: 'No upcoming consultations',
+                                  emptySubtitle: 'Book a consultation to get started.',
+                                ),
+                                _AppointmentList(
+                                  appointments: ctrl.pastVisits,
+                                  emptyIcon: Icons.history,
+                                  emptyMessage: 'No past consultations',
+                                  emptySubtitle: 'Your completed appointments will appear here.',
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHero() {
+    return Stack(
+      children: [
+        Positioned(
+          top: -40,
+          left: -40,
+          child: Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+        Positioned(
+          top: -20,
+          right: -20,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF4C1D95).withValues(alpha: 0.3),
+            ),
+          ),
+        ),
+        SafeArea(
+          bottom: false,
+          child: SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'My Consultations',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Track your appointments and visit history',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -86,8 +196,6 @@ class _AppointmentList extends StatelessWidget {
     required this.emptySubtitle,
   });
 
-  
-
   @override
   Widget build(BuildContext context) {
     if (appointments.isEmpty) {
@@ -95,29 +203,24 @@ class _AppointmentList extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.chipBg,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(emptyIcon, size: 48, color: AppColors.primary),
-            ),
-            const SizedBox(height: 20),
+            Icon(emptyIcon, size: 48, color: const Color(0xFFC4B5FD)),
+            const SizedBox(height: 16),
             Text(
               emptyMessage,
               style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+                fontFamily: 'Figtree',
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A0F2E),
               ),
             ),
             const SizedBox(height: 6),
             Text(
               emptySubtitle,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade500,
+              style: const TextStyle(
+                fontFamily: 'Figtree',
+                fontSize: 12,
+                color: Color(0xFF9B8CB8),
               ),
             ),
           ],
@@ -125,7 +228,7 @@ class _AppointmentList extends StatelessWidget {
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
       itemCount: appointments.length,
       itemBuilder: (context, index) {
         final appt = appointments[index];
@@ -155,21 +258,12 @@ class AppointmentCard extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _statusBg(AppointmentStatus s) {
+  Color _statusColor(AppointmentStatus s) {
     switch (s) {
-      case AppointmentStatus.confirmed: return AppColors.healthGreenBg;
-      case AppointmentStatus.pending:   return const Color(0xFFFEF9C3);
-      case AppointmentStatus.completed: return const Color(0xFFF0F0F0);
-      case AppointmentStatus.cancelled: return const Color(0xFFFFE4E4);
-    }
-  }
-
-  Color _statusFg(AppointmentStatus s) {
-    switch (s) {
-      case AppointmentStatus.confirmed: return AppColors.completedText;
-      case AppointmentStatus.pending:   return const Color(0xFF854D0E);
-      case AppointmentStatus.completed: return const Color(0xFF555555);
-      case AppointmentStatus.cancelled: return AppColors.cancelledText;
+      case AppointmentStatus.confirmed: return const Color(0xFF15803D);
+      case AppointmentStatus.pending:   return const Color(0xFFB45309);
+      case AppointmentStatus.completed: return const Color(0xFF5B4B8A);
+      case AppointmentStatus.cancelled: return const Color(0xFF991B1B);
     }
   }
 
@@ -191,18 +285,12 @@ class AppointmentCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(18),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFEDE8F8)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,25 +302,27 @@ class AppointmentCard extends StatelessWidget {
                   child: Text(
                     appt.vetName,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.black,
+                      fontFamily: 'Figtree',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Color(0xFF1A0F2E),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _statusBg(appt.status),
-                    borderRadius: BorderRadius.circular(20),
+                    color: _statusColor(appt.status),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     _statusLabel(appt.status),
-                    style: TextStyle(
-                      color: _statusFg(appt.status),
-                      fontWeight: FontWeight.bold,
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
                   ),
@@ -244,25 +334,27 @@ class AppointmentCard extends StatelessWidget {
             // Date & Time
             Row(
               children: [
-                Icon(Icons.calendar_today_outlined,
-                    size: 14, color: AppColors.primary),
+                const Icon(Icons.calendar_today_outlined,
+                    size: 14, color: Color(0xFF7C3AED)),
                 const SizedBox(width: 6),
                 Text(
                   dateFmt.format(appt.appointmentDate),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade700,
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 12,
+                    color: Color(0xFF9B8CB8),
                   ),
                 ),
                 const SizedBox(width: 14),
-                Icon(Icons.access_time,
-                    size: 14, color: AppColors.primary),
+                const Icon(Icons.access_time,
+                    size: 14, color: Color(0xFF7C3AED)),
                 const SizedBox(width: 6),
                 Text(
                   timeFmt.format(appt.timeSlot),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade700,
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 12,
+                    color: Color(0xFF9B8CB8),
                   ),
                 ),
               ],
@@ -272,13 +364,14 @@ class AppointmentCard extends StatelessWidget {
             // Pet name
             Row(
               children: [
-                Icon(Icons.pets, size: 14, color: AppColors.primary),
+                const Icon(Icons.pets, size: 14, color: Color(0xFF7C3AED)),
                 const SizedBox(width: 6),
                 Text(
                   'Pet: ${appt.petName}',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade700,
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 12,
+                    color: Color(0xFF9B8CB8),
                   ),
                 ),
               ],
@@ -288,20 +381,21 @@ class AppointmentCard extends StatelessWidget {
             // Reason
             Row(
               children: [
-                Icon(Icons.note_outlined, size: 14, color: AppColors.primary),
+                const Icon(Icons.note_outlined, size: 14, color: Color(0xFF7C3AED)),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     appt.reason,
-                    style: TextStyle(
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
                       fontSize: 12,
-                      color: Colors.grey.shade500,
+                      color: Color(0xFF9B8CB8),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+                const Icon(Icons.chevron_right, color: Color(0xFFC4B5FD), size: 20),
               ],
             ),
           ],

@@ -67,6 +67,10 @@ class AIScannerService {
         // Remove class number if present (e.g. "0 Ear Mites" -> "Ear Mites")
         label = label.replaceFirst(RegExp(r'^\d+\s+'), '');
         
+        if (maxProb < 0.95) {
+          label = 'Uncertain';
+        }
+
         return {
           'label': label,
           'confidence': maxProb,

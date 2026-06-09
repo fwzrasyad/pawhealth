@@ -1,4 +1,5 @@
-import 'daily_routine_model.dart'; // Import the new log model
+import 'recovery_plan_model.dart';
+import 'vaccination_record_model.dart';
 
 class Pet {
   final String petId;
@@ -10,7 +11,8 @@ class Pet {
   final String gender;
   final double weight;
   final String? profileImageUrl;
-  final List<DailyRoutineLog> dailyRoutines;
+  final List<VaccinationRecord> vaccinations;
+  final List<RecoveryPlan> recoveryPlans;
 
   Pet({
     required this.petId,
@@ -22,7 +24,8 @@ class Pet {
     required this.gender,
     required this.weight,
     this.profileImageUrl,
-    this.dailyRoutines = const [],
+    this.vaccinations = const [],
+    this.recoveryPlans = const [],
   });
 
   factory Pet.fromJson(Map<String, dynamic> json) {
@@ -36,9 +39,12 @@ class Pet {
       gender: json['gender'] as String,
       weight: (json['weight'] as num).toDouble(),
       profileImageUrl: json['profile_image_url'] as String?,
-      dailyRoutines:
-          (json['daily_routines'] as List<dynamic>?)
-              ?.map((e) => DailyRoutineLog.fromJson(e as Map<String, dynamic>))
+      vaccinations: (json['vaccinations'] as List<dynamic>?)
+              ?.map((e) => VaccinationRecord.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      recoveryPlans: (json['recovery_plans'] as List<dynamic>?)
+              ?.map((e) => RecoveryPlan.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
     );
@@ -55,7 +61,8 @@ class Pet {
       'gender': gender,
       'weight': weight,
       'profile_image_url': profileImageUrl,
-      'daily_routines': dailyRoutines.map((log) => log.toJson()).toList(),
+      'vaccinations': vaccinations.map((v) => v.toJson()).toList(),
+      'recovery_plans': recoveryPlans.map((r) => r.toJson()).toList(),
     };
   }
 
@@ -69,7 +76,8 @@ class Pet {
     String? gender,
     double? weight,
     String? profileImageUrl,
-    List<DailyRoutineLog>? dailyRoutines,
+    List<VaccinationRecord>? vaccinations,
+    List<RecoveryPlan>? recoveryPlans,
   }) {
     return Pet(
       petId: petId ?? this.petId,
@@ -81,7 +89,8 @@ class Pet {
       gender: gender ?? this.gender,
       weight: weight ?? this.weight,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      dailyRoutines: dailyRoutines ?? this.dailyRoutines,
+      vaccinations: vaccinations ?? this.vaccinations,
+      recoveryPlans: recoveryPlans ?? this.recoveryPlans,
     );
   }
 }

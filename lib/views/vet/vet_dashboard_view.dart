@@ -4,11 +4,11 @@ import 'package:intl/intl.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/vet_controller.dart';
 import '../../../models/appointment_model.dart';
-import '../../utils/constants.dart';
 import 'manage_appointments_view.dart';
 import 'manage_availability_view.dart';
 import 'vet_appointment_details_view.dart';
 import 'vet_profile_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class VetDashboardView extends StatefulWidget {
   const VetDashboardView({super.key});
@@ -26,7 +26,6 @@ class _VetDashboardViewState extends State<VetDashboardView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vc = context.read<VetController>();
       vc.fetchAppointments();
-      vc.fetchPatients();
       vc.fetchMyVetProfile();
     });
   }
@@ -41,15 +40,24 @@ class _VetDashboardViewState extends State<VetDashboardView> {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.lightSurface,
+      backgroundColor: const Color(0xFF7C3AED),
       body: screens[_selectedIndex],
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
+        color: const Color(0xFFF7F5FF),
+        child: Container(
+          decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 10,
+              offset: Offset(0, -2),
+            )
+          ],
         ),
         child: SafeArea(
           child: Padding(
@@ -64,6 +72,7 @@ class _VetDashboardViewState extends State<VetDashboardView> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
@@ -90,17 +99,23 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(selected ? activeIcon : icon, color: selected ? AppColors.primary : AppColors.navInactive, size: 24),
-            SizedBox(height: 4),
-            Text(label, style: AppFonts.dmSans(fontSize: 11, fontWeight: selected ? FontWeight.w700 : FontWeight.w400, color: selected ? AppColors.primary : AppColors.navInactive)),
+            Icon(selected ? activeIcon : icon, color: selected ? const Color(0xFF7C3AED) : const Color(0xFF9B8CB8), size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Figtree',
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? const Color(0xFF7C3AED) : const Color(0xFF9B8CB8),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
-
-// ─── Vet Home Content ─────────────────────────────────────────────────────────
 
 class _VetHomeContent extends StatelessWidget {
   const _VetHomeContent();
@@ -119,151 +134,292 @@ class _VetHomeContent extends StatelessWidget {
     final firstName = auth.currentUser?.name.split(' ').first ?? 'Doctor';
     final todayFmt = DateFormat('EEEE, MMMM d').format(DateTime.now());
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
+    return Column(
+      children: [
+        _buildHero(firstName, todayFmt, vc),
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF7F5FF),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionHeader('Today\'s Schedule', context, 1),
+                    if (vc.todaysAppointments.isEmpty)
+                      _buildEmptyScheduleCard()
+                    else
+                      ...vc.todaysAppointments.map((a) => _AppointmentCard(appointment: a)),
+                    
+                    const SizedBox(height: 16),
+                    _buildSectionHeader('Pending Requests', context, 1),
+                    if (vc.pendingAppointments.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFEDE8F8)),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'No pending requests',
+                            style: TextStyle(fontFamily: 'Figtree', fontSize: 13, color: Color(0xFF9B8CB8)),
+                          ),
+                        ),
+                      )
+                    else
+                      ...vc.pendingAppointments.take(2).map((a) => _PendingPreviewCard(appointment: a)),
+
+                    const SizedBox(height: 16),
+                    _buildSectionHeader('History', context, 1),
+                    if (vc.completedAppointments.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFEDE8F8)),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'No completed appointments yet',
+                            style: TextStyle(fontFamily: 'Figtree', fontSize: 13, color: Color(0xFF9B8CB8)),
+                          ),
+                        ),
+                      )
+                    else
+                      ...vc.completedAppointments.take(5).map((a) => _HistoryCard(appointment: a)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHero(String name, String date, VetController vc) {
+    return Stack(
+      children: [
+        Positioned(
+          top: -40,
+          left: -40,
+          child: Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+        Positioned(
+          top: -20,
+          right: -20,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF4C1D95).withValues(alpha: 0.3),
+            ),
+          ),
+        ),
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 44, 20, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_greeting(), style: AppFonts.caption(fontSize: 13, color: AppColors.metaText)),
-                      SizedBox(height: 2),
-                      Text(firstName, style: AppFonts.headline(fontSize: 26)),
-                      Text(todayFmt, style: AppFonts.caption(fontSize: 13, color: AppColors.metaText)),
-                    ],
+                Text(
+                  _greeting(),
+                  style: TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.6),
                   ),
                 ),
                 Container(
-                  width: 48, height: 48,
-                  decoration: AppDecor.squareChip(),
-                  child: Icon(Icons.notifications_outlined, color: AppColors.primary, size: 22),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 28),
-
-            // Quick Stats
-            Row(
-              children: [
-                Expanded(child: _StatCard(icon: Icons.calendar_today, label: "Today's\nAppointments", value: '${vc.todaysAppointments.length}', color: AppColors.primary, bg: AppColors.chipBg)),
-                const SizedBox(width: 14),
-                Expanded(child: _StatCard(icon: Icons.pending_actions, label: 'Pending\nRequests', value: '${vc.pendingAppointments.length}', color: AppColors.pendingText, bg: AppColors.pendingBg)),
-              ],
-            ),
-
-            const SizedBox(height: 28),
-
-            // Today's Schedule
-            Text("Today's Schedule", style: AppFonts.fraunces(fontSize: 18)),
-            const SizedBox(height: 14),
-
-            if (vc.todaysAppointments.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: AppDecor.card(),
-                child: Row(
-                  children: [
-                    Text('🎉', style: TextStyle(fontSize: 28)),
-                    const SizedBox(width: 14),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('No appointments today!', style: AppFonts.bodyBold()),
-                        Text('Enjoy your day off.', style: AppFonts.caption(color: AppColors.metaText)),
-                      ],
+                  margin: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    name,
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 26,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: -0.4,
                     ),
-                  ],
+                  ),
                 ),
-              )
-            else
-              ...vc.todaysAppointments.asMap().entries.map((entry) {
-                final i = entry.key;
-                final appt = entry.value;
-                final isLast = i == vc.todaysAppointments.length - 1;
-                return _TimelineCard(appointment: appt, isLast: isLast);
-              }),
-
-            SizedBox(height: 28),
-
-            // Pending Requests Preview
-            Row(
-              children: [
-                Text('Pending Requests', style: AppFonts.fraunces(fontSize: 18)),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageAppointmentsView())),
-                  child: Text('See all', style: AppFonts.dmSans(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13)),
+                Text(
+                  date,
+                  style: TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(top: 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          value: '${vc.todaysAppointments.length}',
+                          label: 'Today\'s\nAppointments',
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _StatCard(
+                          value: '${vc.pendingAppointments.length}',
+                          label: 'Pending\nRequests',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            if (vc.pendingAppointments.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: AppDecor.card(),
-                child: Center(child: Text('No pending requests', style: AppFonts.body(color: AppColors.metaText))),
-              )
-            else
-              ...vc.pendingAppointments.take(2).map((a) => _PendingPreviewCard(appointment: a)),
-
-            const SizedBox(height: 28),
-
-            // History Section
-            Text('History', style: AppFonts.fraunces(fontSize: 18)),
-            const SizedBox(height: 6),
-            Text('Completed appointments', style: AppFonts.caption(color: AppColors.metaText)),
-            const SizedBox(height: 14),
-            if (vc.completedAppointments.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: AppDecor.card(),
-                child: Center(child: Text('No completed appointments yet', style: AppFonts.body(color: AppColors.metaText))),
-              )
-            else
-              ...vc.completedAppointments.take(5).map((a) => _HistoryCard(appointment: a)),
-          ],
+          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, BuildContext context, int tabIndex) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontFamily: 'Figtree',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A0F2E),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              final state = context.findAncestorStateOfType<_VetDashboardViewState>();
+              if (state != null) {
+                state.setState(() {
+                  state._selectedIndex = tabIndex;
+                });
+              }
+            },
+            child: const Text(
+              'See all',
+              style: TextStyle(
+                fontFamily: 'Figtree',
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF7C3AED),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyScheduleCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEDE8F8)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today_outlined, color: Color(0xFF7C3AED), size: 20),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'No appointments today',
+                style: TextStyle(
+                  fontFamily: 'Figtree',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1A0F2E),
+                ),
+              ),
+              Text(
+                'Enjoy your day off',
+                style: TextStyle(
+                  fontFamily: 'Figtree',
+                  fontSize: 11,
+                  color: Color(0xFF9B8CB8),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
 class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
   final String value;
-  final Color color;
-  final Color bg;
+  final String label;
 
-  const _StatCard({required this.icon, required this.label, required this.value, required this.color, required this.bg});
+  const _StatCard({required this.value, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: AppDecor.card(radius: 18),
-      child: Row(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40, height: 40,
-            decoration: AppDecor.squareChip(color: bg),
-            child: Icon(icon, color: color, size: 20),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Figtree',
+              fontSize: 26,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: -0.5,
+            ),
           ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(value, style: AppFonts.fraunces(fontSize: 24, color: color)),
-                Text(label, style: AppFonts.caption(fontSize: 11, color: AppColors.metaText)),
-              ],
+          Container(
+            margin: const EdgeInsets.only(top: 2),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Figtree',
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.6),
+              ),
             ),
           ),
         ],
@@ -272,64 +428,165 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _TimelineCard extends StatelessWidget {
+class _AppointmentCard extends StatelessWidget {
   final Appointment appointment;
-  final bool isLast;
-
-  const _TimelineCard({required this.appointment, required this.isLast});
+  const _AppointmentCard({required this.appointment});
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Timeline line
-          SizedBox(
-            width: 40,
-            child: Column(
+    final vc = context.read<VetController>();
+    final fallbackPet = vc.getPetById(appointment.petId);
+    final imgUrl = (appointment.petProfileUrl != null && appointment.petProfileUrl!.isNotEmpty)
+        ? appointment.petProfileUrl
+        : fallbackPet?.profileImageUrl;
+
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VetAppointmentDetailsView(appointment: appointment))),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDE8F8)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 12, height: 12,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(4),
+                    color: const Color(0xFFEDE8F8),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: imgUrl != null && imgUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imgUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => const SizedBox(),
+                          errorWidget: (_, __, ___) => Center(
+                            child: Text(
+                              vc.getPetEmoji(fallbackPet?.species ?? ''),
+                              style: const TextStyle(fontSize: 24),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            vc.getPetEmoji(fallbackPet?.species ?? ''),
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        appointment.petName,
+                        style: const TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A0F2E),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 1),
+                        child: Text(
+                          appointment.ownerName != null ? 'Owner: ${appointment.ownerName}' : 'Unknown Owner',
+                          style: const TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 11,
+                            color: Color(0xFF9B8CB8),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 3),
+                        child: Text(
+                          appointment.isVirtual ? 'Virtual Consultation' : 'In-Person Visit',
+                          style: const TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 11,
+                            color: Color(0xFFB0A4C8),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                if (!isLast)
-                  Expanded(child: Container(width: 2, color: AppColors.cardBorder)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF15803D), // Confirmed badge color
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'CONFIRMED',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-          // Card
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => VetAppointmentDetailsView(appointment: appointment)));
-              },
-              child: Container(
-                margin: EdgeInsets.only(bottom: isLast ? 0 : 14),
-                padding: const EdgeInsets.all(16),
-                decoration: AppDecor.card(),
-                child: Row(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(DateFormat('h:mm a').format(appointment.timeSlot), style: AppFonts.bodyBold(color: AppColors.primary)),
-                        SizedBox(height: 4),
-                        Text(appointment.petName, style: AppFonts.fraunces(fontSize: 15)),
-                        Text(appointment.reason, style: AppFonts.caption(color: AppColors.metaText), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                    const Spacer(),
-                    Icon(Icons.chevron_right, color: AppColors.navInactive),
-                  ],
-                ),
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.only(top: 10),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color(0xFFEDE8F8))),
+              ),
+              child: Row(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today_outlined, size: 12, color: Color(0xFF9B8CB8)),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('MMM d, yyyy').format(appointment.appointmentDate),
+                        style: const TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 11,
+                          color: Color(0xFF9B8CB8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.access_time, size: 12, color: Color(0xFF9B8CB8)),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('h:mm a').format(appointment.timeSlot),
+                        style: const TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 11,
+                          color: Color(0xFF9B8CB8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -344,31 +601,44 @@ class _PendingPreviewCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VetAppointmentDetailsView(appointment: appointment))),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFFDE68A)),
+          border: Border.all(color: const Color(0xFFEDE8F8)),
         ),
         child: Row(
           children: [
-            Container(
-              width: 36, height: 36,
-              decoration: AppDecor.squareChip(color: AppColors.pendingBg),
-              child: Icon(Icons.pending_actions, color: AppColors.pendingText, size: 18),
-            ),
-            SizedBox(width: 12),
+            const Icon(Icons.access_time, color: Color(0xFF7C3AED), size: 22),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${appointment.petName} – ${appointment.reason}', style: AppFonts.bodyBold(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  Text(DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot), style: AppFonts.caption(color: AppColors.metaText)),
+                  Text(
+                    '${appointment.petName} – ${appointment.reason}',
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A0F2E),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot),
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 11,
+                      color: Color(0xFF9B8CB8),
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: AppColors.navInactive, size: 18),
+            const Icon(Icons.chevron_right, color: Color(0xFFC4B5FD), size: 16),
           ],
         ),
       ),
@@ -382,40 +652,94 @@ class _HistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final vc = context.read<VetController>();
+    final fallbackPet = vc.getPetById(appointment.petId);
+    final imgUrl = (appointment.petProfileUrl != null && appointment.petProfileUrl!.isNotEmpty)
+        ? appointment.petProfileUrl
+        : fallbackPet?.profileImageUrl;
+
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => VetAppointmentDetailsView(appointment: appointment))),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFBBF7D0)),
+          border: Border.all(color: const Color(0xFFEDE8F8)),
         ),
         child: Row(
           children: [
             Container(
-              width: 36, height: 36,
-              decoration: AppDecor.squareChip(color: AppColors.completedBg),
-              child: Icon(Icons.check_circle, color: AppColors.completedText, size: 18),
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEDE8F8),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: imgUrl != null && imgUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: imgUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const SizedBox(),
+                      errorWidget: (_, __, ___) => Center(
+                        child: Text(
+                          vc.getPetEmoji(fallbackPet?.species ?? ''),
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Text(
+                        vc.getPetEmoji(fallbackPet?.species ?? ''),
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                    ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(appointment.petName, style: AppFonts.fraunces(fontSize: 13)),
-                  Text(DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot), style: AppFonts.caption(color: AppColors.metaText)),
+                  Text(
+                    appointment.petName,
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A0F2E),
+                    ),
+                  ),
+                  Text(
+                    DateFormat('EEE, MMM d · h:mm a').format(appointment.timeSlot),
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 11,
+                      color: Color(0xFF9B8CB8),
+                    ),
+                  ),
                 ],
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: AppColors.completedBg, borderRadius: BorderRadius.circular(8)),
-              child: Text('Completed', style: AppFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 10, color: AppColors.completedText)),
+              decoration: BoxDecoration(
+                color: const Color(0xFF15803D),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'COMPLETED',
+                style: TextStyle(
+                  fontFamily: 'Figtree',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
             ),
             const SizedBox(width: 6),
-            Icon(Icons.chevron_right, color: AppColors.navInactive, size: 18),
+            const Icon(Icons.chevron_right, color: Color(0xFFC4B5FD), size: 16),
           ],
         ),
       ),

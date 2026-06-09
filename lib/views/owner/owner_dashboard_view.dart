@@ -8,10 +8,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/pet_controller.dart';
+import '../../controllers/vet_controller.dart';
+import '../../models/pet_model.dart';
 import '../../controllers/appointment_controller.dart';
 import '../../models/appointment_model.dart';
+import '../../utils/vaccine_utils.dart';
 
-import '../../models/daily_routine_model.dart';
 import '../../utils/constants.dart';
 import '../profile/profile_settings_view.dart';
 import 'pets/my_pets_list_view.dart';
@@ -35,7 +37,7 @@ class _OwnerDashboardViewState extends State<OwnerDashboardView> {
     const MyPetsListView(),
     const Center(child: Text('')), // placeholder for center FAB
     const MyVisitsView(),
-    const AIScannerView(),
+    const SmartAnalyzerIntroView(),
   ];
 
   @override
@@ -53,80 +55,83 @@ class _OwnerDashboardViewState extends State<OwnerDashboardView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightSurface,
+      backgroundColor: const Color(0xFF7C3AED),
       body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+        color: const Color(0xFFF7F5FF),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
           ),
-        ),
-        child: SafeArea(
-          top: false,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _NavItem(
-                index: 0,
-                selected: _selectedIndex == 0,
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
-                label: 'Home',
-                onTap: () => setState(() => _selectedIndex = 0),
-              ),
-              _NavItem(
-                index: 1,
-                selected: _selectedIndex == 1,
-                icon: Icons.pets_outlined,
-                activeIcon: Icons.pets,
-                label: 'Pets',
-                onTap: () => setState(() => _selectedIndex = 1),
-              ),
-              // Centre FAB — square
-              GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const BookAppointmentView(),
-                  ),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _NavItem(
+                  index: 0,
+                  selected: _selectedIndex == 0,
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'Home',
+                  onTap: () => setState(() => _selectedIndex = 0),
                 ),
-                child: Transform.translate(
-                  offset: const Offset(0, -8),
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.medical_services_rounded,
-                      color: Colors.white,
-                      size: 24,
+                _NavItem(
+                  index: 1,
+                  selected: _selectedIndex == 1,
+                  icon: Icons.pets_outlined,
+                  activeIcon: Icons.pets,
+                  label: 'Pets',
+                  onTap: () => setState(() => _selectedIndex = 1),
+                ),
+                // Centre FAB — square
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const BookAppointmentView(),
                     ),
                   ),
+                  child: Transform.translate(
+                    offset: const Offset(0, -8),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7C3AED),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(
+                        Icons.medical_services_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              _NavItem(
-                index: 3,
-                selected: _selectedIndex == 3,
-                icon: Icons.calendar_today_outlined,
-                activeIcon: Icons.calendar_today,
-                label: 'Visits',
-                onTap: () => setState(() => _selectedIndex = 3),
-              ),
-              _NavItem(
-                index: 4,
-                selected: _selectedIndex == 4,
-                icon: Icons.analytics_outlined,
-                activeIcon: Icons.analytics,
-                label: 'Analyze',
-                onTap: () => setState(() => _selectedIndex = 4),
-              ),
-            ],
+                _NavItem(
+                  index: 3,
+                  selected: _selectedIndex == 3,
+                  icon: Icons.calendar_today_outlined,
+                  activeIcon: Icons.calendar_today,
+                  label: 'Bookings',
+                  onTap: () => setState(() => _selectedIndex = 3),
+                ),
+                _NavItem(
+                  index: 4,
+                  selected: _selectedIndex == 4,
+                  icon: Icons.analytics_outlined,
+                  activeIcon: Icons.analytics,
+                  label: 'Analyze',
+                  onTap: () => setState(() => _selectedIndex = 4),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -163,16 +168,17 @@ class _NavItem extends StatelessWidget {
           children: [
             Icon(
               selected ? activeIcon : icon,
-              color: selected ? AppColors.primary : AppColors.navInactive,
+              color: selected ? const Color(0xFF7C3AED) : const Color(0xFFC4B5FD),
               size: 22,
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               label,
-              style: AppFonts.dmSans(
+              style: TextStyle(
+                fontFamily: 'Figtree',
                 fontSize: 10,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? AppColors.primary : AppColors.navInactive,
+                color: selected ? const Color(0xFF7C3AED) : const Color(0xFFC4B5FD),
               ),
             ),
           ],
@@ -278,14 +284,358 @@ class _DashboardContentState extends State<_DashboardContent> {
     final upcoming = apptCtrl.upcomingVisits;
     final myPets = petCtrl.pets;
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header ──────────────────────────────────────────────
-            Row(
+    return Scaffold(
+      backgroundColor: const Color(0xFF7C3AED),
+      body: Column(
+        children: [
+          // ── Hero Header ──
+          _buildHero(auth, firstName),
+          // ── Body ──
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF7F5FF),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Upcoming Appointment Banner ──
+                      _UpcomingBanner(upcoming: upcoming),
+                      const SizedBox(height: 24),
+
+                      // ── Pet Health Summary ──
+                      Row(
+                        children: [
+                          const Text(
+                            'Pet Health',
+                            style: TextStyle(
+                              fontFamily: 'Figtree',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1A0F2E),
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const Spacer(),
+                          GestureDetector(
+                            onTap: () {
+                              final state = context.findAncestorStateOfType<_OwnerDashboardViewState>();
+                              if (state != null) {
+                                state.setState(() => state._selectedIndex = 1);
+                              }
+                            },
+                            child: const Text(
+                              'See all',
+                              style: TextStyle(
+                                fontFamily: 'Figtree',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF7C3AED),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: myPets.isEmpty
+                              ? [
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: const Color(0xFFEDE8F8)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.pets, color: Color(0xFF7C3AED), size: 18),
+                                        const SizedBox(width: 10),
+                                        const Text(
+                                          'No pets added yet',
+                                          style: TextStyle(
+                                            fontFamily: 'Figtree',
+                                            fontSize: 13,
+                                            color: Color(0xFF9B8CB8),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ]
+                              : myPets.map((pet) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      petCtrl.selectPet(pet);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const PetDetailView(),
+                                        ),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 12.0),
+                                      child: _PetHealthCard(
+                                        emoji: _getPetEmoji(pet.species),
+                                        name: pet.name,
+                                        species: pet.species,
+                                        status: VaccineUtils.getVaccinationStatus(pet),
+                                        profileImageUrl: pet.profileImageUrl,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // ── Pet Health News ──
+                      const Text(
+                        'Pet Health News',
+                        style: TextStyle(
+                          fontFamily: 'Figtree',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Color(0xFF1A0F2E),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      if (_isLoadingNews)
+                        SizedBox(
+                          height: 220,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: 3,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                width: 200,
+                                margin: EdgeInsets.only(right: index == 2 ? 0 : 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: const Color(0xFFEDE8F8)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      height: 100,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFF3EFFF),
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(14),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Container(height: 11, width: 80, decoration: BoxDecoration(color: const Color(0xFFF3EFFF), borderRadius: BorderRadius.circular(4))),
+                                          const SizedBox(height: 6),
+                                          Container(height: 13, width: double.infinity, decoration: BoxDecoration(color: const Color(0xFFF3EFFF), borderRadius: BorderRadius.circular(4))),
+                                          const SizedBox(height: 4),
+                                          Container(height: 13, width: 100, decoration: BoxDecoration(color: const Color(0xFFF3EFFF), borderRadius: BorderRadius.circular(4))),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        )
+                      else if (_hasNewsError ||
+                          _newsArticles == null ||
+                          _newsArticles!.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xFFEDE8F8)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.newspaper, color: Color(0xFF7C3AED), size: 18),
+                              SizedBox(width: 10),
+                              Text(
+                                "Couldn't load news at this time.",
+                                style: TextStyle(
+                                  fontFamily: 'Figtree',
+                                  fontSize: 13,
+                                  color: Color(0xFF9B8CB8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        SizedBox(
+                          height: 220,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: _newsArticles!.length,
+                            itemBuilder: (context, index) {
+                              final article = _newsArticles![index];
+                              return GestureDetector(
+                                onTap: () async {
+                                  final uri = Uri.parse(article.url);
+                                  try {
+                                    await launchUrl(
+                                      uri,
+                                      mode: LaunchMode.inAppBrowserView,
+                                    );
+                                  } catch (e) {
+                                    try {
+                                      await launchUrl(
+                                        uri,
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    } catch (_) {}
+                                  }
+                                },
+                                child: Container(
+                                  width: 200,
+                                  margin: EdgeInsets.only(
+                                    right: index == _newsArticles!.length - 1 ? 0 : 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: const Color(0xFFEDE8F8)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(14),
+                                        ),
+                                        child: article.imageUrl != null
+                                            ? CachedNetworkImage(
+                                                imageUrl: article.imageUrl!,
+                                                height: 100,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                                errorWidget: (context, url, error) =>
+                                                    _buildFallbackImage(),
+                                              )
+                                            : _buildFallbackImage(),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              article.source.toUpperCase(),
+                                              style: const TextStyle(
+                                                fontFamily: 'Figtree',
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
+                                                color: Color(0xFF7C3AED),
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              article.title,
+                                              style: const TextStyle(
+                                                fontFamily: 'Figtree',
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                                color: Color(0xFF1A0F2E),
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              _getRelativeTime(article.publishedAt),
+                                              style: const TextStyle(
+                                                fontFamily: 'Figtree',
+                                                fontSize: 11,
+                                                color: Color(0xFFB0A4C8),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHero(AuthController auth, String firstName) {
+    return Stack(
+      children: [
+        // Blob decorations
+        Positioned(
+          top: -40,
+          left: -40,
+          child: Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+        Positioned(
+          top: -20,
+          right: -20,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF4C1D95).withValues(alpha: 0.3),
+            ),
+          ),
+        ),
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Column(
@@ -293,13 +643,24 @@ class _DashboardContentState extends State<_DashboardContent> {
                     children: [
                       Text(
                         _greeting(),
-                        style: AppFonts.caption(
+                        style: TextStyle(
+                          fontFamily: 'Figtree',
                           fontSize: 13,
-                          color: AppColors.metaText,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white.withValues(alpha: 0.6),
                         ),
                       ),
-                      SizedBox(height: 2),
-                      Text(firstName, style: AppFonts.headline(fontSize: 26)),
+                      const SizedBox(height: 2),
+                      Text(
+                        firstName,
+                        style: const TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 26,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: -0.4,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -313,284 +674,38 @@ class _DashboardContentState extends State<_DashboardContent> {
                   child: Container(
                     width: 48,
                     height: 48,
-                    decoration: AppDecor.squareChip(),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     clipBehavior: Clip.hardEdge,
-                    child:
-                        (auth.currentUser?.profileImageUrl != null &&
+                    child: (auth.currentUser?.profileImageUrl != null &&
                             auth.currentUser!.profileImageUrl!.isNotEmpty)
                         ? CachedNetworkImage(
                             imageUrl: auth.currentUser!.profileImageUrl!,
                             fit: BoxFit.cover,
                             placeholder: (context, url) => const Padding(
                               padding: EdgeInsets.all(12),
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             ),
                             errorWidget: (context, url, error) => const Icon(
                               Icons.person_outline,
-                              color: AppColors.primary,
+                              color: Colors.white,
                               size: 24,
                             ),
                           )
                         : const Icon(
                             Icons.person_outline,
-                            color: AppColors.primary,
+                            color: Colors.white,
                             size: 24,
                           ),
                   ),
                 ),
               ],
             ),
-
-            const SizedBox(height: 24),
-
-            // ── Upcoming Appointment Banner ─────────────────────────
-            _UpcomingBanner(upcoming: upcoming),
-
-            const SizedBox(height: 28),
-
-            // ── Pet Health Summary ──────────────────────────────────
-            Row(
-              children: [
-                Text("Pet Health", style: AppFonts.fraunces(fontSize: 18)),
-                const Spacer(),
-
-                Text(
-                  'See all',
-                  style: AppFonts.dmSans(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: myPets.isEmpty
-                    ? [
-                        Text(
-                          'No pets added yet.',
-                          style: AppFonts.body(color: AppColors.metaText),
-                        ),
-                      ]
-                    : myPets.map((pet) {
-                        return GestureDetector(
-                          onTap: () {
-                            petCtrl.selectPet(pet);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const PetDetailView(),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 12.0),
-                            child: _PetHealthCard(
-                              emoji: _getPetEmoji(pet.species),
-                              name: pet.name,
-                              species: pet.species,
-                              status: 'Healthy',
-                              profileImageUrl: pet.profileImageUrl,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-              ),
-            ),
-
-            const SizedBox(height: 28),
-
-            // ── Pet Health News ──────────────────────────────────────
-            Row(
-              children: [
-                const Text(
-                  "Pet Health News",
-                  style: TextStyle(
-                    fontFamily: 'Figtree',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: Color(0xFF1A0F2E),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-
-            if (_isLoadingNews)
-              SizedBox(
-                height: 220,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: 3,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      width: 200,
-                      margin: EdgeInsets.only(right: index == 2 ? 20 : 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFEDE8F8)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            height: 100,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF3EFFF),
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(16),
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  height: 11,
-                                  width: 80,
-                                  color: const Color(0xFFF3EFFF),
-                                ),
-                                const SizedBox(height: 6),
-                                Container(
-                                  height: 13,
-                                  width: double.infinity,
-                                  color: const Color(0xFFF3EFFF),
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  height: 13,
-                                  width: 100,
-                                  color: const Color(0xFFF3EFFF),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              )
-            else if (_hasNewsError ||
-                _newsArticles == null ||
-                _newsArticles!.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Text(
-                  "Couldn't load news at this time.",
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-              )
-            else
-              SizedBox(
-                height: 220,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: _newsArticles!.length,
-                  itemBuilder: (context, index) {
-                    final article = _newsArticles![index];
-                    return GestureDetector(
-                      onTap: () async {
-                        final uri = Uri.parse(article.url);
-                        try {
-                          await launchUrl(
-                            uri,
-                            mode: LaunchMode.inAppBrowserView,
-                          );
-                        } catch (e) {
-                          try {
-                            await launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          } catch (_) {}
-                        }
-                      },
-                      child: Container(
-                        width: 200,
-                        margin: EdgeInsets.only(
-                          right: index == _newsArticles!.length - 1 ? 20 : 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFEDE8F8)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(16),
-                              ),
-                              child: article.imageUrl != null
-                                  ? CachedNetworkImage(
-                                      imageUrl: article.imageUrl!,
-                                      height: 100,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                      errorWidget: (context, url, error) =>
-                                          _buildFallbackImage(),
-                                    )
-                                  : _buildFallbackImage(),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    article.source.toUpperCase(),
-                                    style: const TextStyle(
-                                      fontFamily: 'Figtree',
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 11,
-                                      color: Color(0xFF7C3AED),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    article.title,
-                                    style: const TextStyle(
-                                      fontFamily: 'Figtree',
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                      color: Color(0xFF1A0F2E),
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    _getRelativeTime(article.publishedAt),
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFFB0A4C8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -623,7 +738,10 @@ class _UpcomingBanner extends StatelessWidget {
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
-          decoration: AppDecor.darkCard(),
+          decoration: BoxDecoration(
+            color: const Color(0xFF4C1D95),
+            borderRadius: BorderRadius.circular(18),
+          ),
           child: Stack(
             children: [
               // Decorative glow blobs
@@ -631,23 +749,23 @@ class _UpcomingBanner extends StatelessWidget {
                 top: -30,
                 right: -20,
                 child: Container(
-                  width: 120,
-                  height: 120,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(999),
+                    color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
               Positioned(
-                bottom: -40,
-                left: -20,
+                bottom: -30,
+                left: -15,
                 child: Container(
-                  width: 100,
-                  height: 100,
+                  width: 80,
+                  height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.glowPurple.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(999),
+                    color: const Color(0xFF6D28D9).withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
@@ -657,38 +775,40 @@ class _UpcomingBanner extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'No upcoming visits',
-                          style: AppFonts.fraunces(
-                            fontSize: 17,
+                        const Text(
+                          'No upcoming consultations',
+                          style: TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Text(
                           'Book a consultation with a vet today',
-                          style: AppFonts.dmSans(
-                            color: AppColors.metaText,
-                            fontSize: 13,
+                          style: TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.badgePurpleBg,
-                      borderRadius: BorderRadius.circular(12),
+                      color: const Color(0xFF7C3AED),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(
+                    child: const Text(
                       'Book Now',
-                      style: AppFonts.bodyBold(
+                      style: TextStyle(
+                        fontFamily: 'Figtree',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                         color: Colors.white,
-                        fontSize: 13,
                       ),
                     ),
                   ),
@@ -704,7 +824,10 @@ class _UpcomingBanner extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: AppDecor.darkCard(),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4C1D95),
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Stack(
         children: [
           // Decorative glow blobs
@@ -712,23 +835,23 @@ class _UpcomingBanner extends StatelessWidget {
             top: -40,
             right: -30,
             child: Container(
-              width: 140,
-              height: 140,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(999),
+                color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                shape: BoxShape.circle,
               ),
             ),
           ),
           Positioned(
-            bottom: -50,
-            left: -30,
+            bottom: -40,
+            left: -25,
             child: Container(
-              width: 120,
-              height: 120,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
-                color: AppColors.glowPurple.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(999),
+                color: const Color(0xFF6D28D9).withValues(alpha: 0.2),
+                shape: BoxShape.circle,
               ),
             ),
           ),
@@ -738,31 +861,30 @@ class _UpcomingBanner extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.badgePurpleBg,
-                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFF7C3AED),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       _statusLabel(next.status.name),
-                      style: AppFonts.dmSans(
-                        color: AppColors.badgePurpleText,
-                        fontWeight: FontWeight.w700,
+                      style: const TextStyle(
+                        fontFamily: 'Figtree',
                         fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                   const Spacer(),
-                  Icon(Icons.access_time, color: AppColors.metaText, size: 16),
-                  SizedBox(width: 4),
+                  Icon(Icons.access_time, color: Colors.white.withValues(alpha: 0.5), size: 14),
+                  const SizedBox(width: 4),
                   Text(
                     DateFormat('h:mm a').format(next.timeSlot),
-                    style: AppFonts.dmSans(
-                      color: AppColors.metaText,
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
                       fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -770,20 +892,31 @@ class _UpcomingBanner extends StatelessWidget {
               const SizedBox(height: 14),
               Text(
                 next.reason,
-                style: AppFonts.fraunces(color: Colors.white, fontSize: 18),
+                style: const TextStyle(
+                  fontFamily: 'Figtree',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 next.vetName,
-                style: AppFonts.dmSans(
-                  color: AppColors.badgePurpleText,
+                style: TextStyle(
+                  fontFamily: 'Figtree',
                   fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'Pet: ${next.petName}  ·  ${DateFormat('EEE, MMM d').format(next.appointmentDate)}',
-                style: AppFonts.dmSans(color: AppColors.metaText, fontSize: 12),
+                style: TextStyle(
+                  fontFamily: 'Figtree',
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.5),
+                ),
               ),
             ],
           ),
@@ -793,44 +926,6 @@ class _UpcomingBanner extends StatelessWidget {
   }
 
   String _statusLabel(String s) => s[0].toUpperCase() + s.substring(1);
-}
-
-class _QuickActionCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickActionCard({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        decoration: AppDecor.card(),
-        child: Column(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: AppDecor.squareChip(),
-              child: Icon(icon, color: AppColors.primary, size: 20),
-            ),
-            SizedBox(height: 8),
-            Text(
-              label,
-              style: AppFonts.caption(fontSize: 12, color: AppColors.mutedText),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _PetHealthCard extends StatelessWidget {
@@ -850,7 +945,11 @@ class _PetHealthCard extends StatelessWidget {
     return Container(
       width: 150,
       padding: const EdgeInsets.all(16),
-      decoration: AppDecor.card(),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEDE8F8)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -874,33 +973,40 @@ class _PetHealthCard extends StatelessWidget {
                 )
               : Text(emoji, style: const TextStyle(fontSize: 36)),
           const SizedBox(height: 8),
-          Text(name, style: AppFonts.fraunces(fontSize: 16)),
-          Text(species, style: AppFonts.caption(color: AppColors.metaText)),
+          Text(
+            name,
+            style: const TextStyle(
+              fontFamily: 'Figtree',
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A0F2E),
+            ),
+          ),
+          Text(
+            species,
+            style: const TextStyle(
+              fontFamily: 'Figtree',
+              fontSize: 12,
+              color: Color(0xFF9B8CB8),
+            ),
+          ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.healthGreenBg,
-              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFF15803D),
+              borderRadius: BorderRadius.circular(6),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  color: AppColors.healthGreen,
-                  size: 12,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  status,
-                  style: AppFonts.dmSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.healthGreen,
-                  ),
-                ),
-              ],
+            child: Text(
+              '✓ $status',
+              style: const TextStyle(
+                fontFamily: 'Figtree',
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
         ],
@@ -926,30 +1032,39 @@ class _RoutineItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: AppDecor.card(),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFEDE8F8)),
+      ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: AppDecor.squareChip(
-              color: done ? AppColors.healthGreenBg : AppColors.chipBg,
-            ),
-            child: Icon(
-              icon,
-              color: done ? AppColors.healthGreen : AppColors.primary,
-              size: 20,
-            ),
+          Icon(
+            icon,
+            color: done ? const Color(0xFF15803D) : const Color(0xFF7C3AED),
+            size: 20,
           ),
-          SizedBox(width: 14),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppFonts.bodyBold()),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A0F2E),
+                  ),
+                ),
                 Text(
                   subtitle,
-                  style: AppFonts.caption(color: AppColors.metaText),
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 12,
+                    color: Color(0xFF9B8CB8),
+                  ),
                 ),
               ],
             ),
@@ -959,25 +1074,27 @@ class _RoutineItem extends StatelessWidget {
             children: [
               Text(
                 time,
-                style: AppFonts.dmSans(
+                style: const TextStyle(
+                  fontFamily: 'Figtree',
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.mutedText,
+                  color: Color(0xFF5B4B8A),
                 ),
               ),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: done ? AppColors.healthGreenBg : AppColors.chipBg,
-                  borderRadius: BorderRadius.circular(10),
+                  color: done ? const Color(0xFF15803D) : const Color(0xFF7C3AED),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   done ? 'Done' : 'Pending',
-                  style: AppFonts.dmSans(
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
                     fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: done ? AppColors.healthGreen : AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Result types – the service never throws; it returns success or failure.
@@ -63,6 +64,39 @@ class FirebaseAuthService {
       return AuthFailure(_mapFirebaseError(e));
     } catch (e) {
       return AuthFailure('An unexpected error occurred. Please try again.');
+    }
+  }
+
+  /// Signs in using Google OAuth.
+  Future<AuthResult> signInWithGoogle() async {
+    try {
+      final googleSignIn = GoogleSignIn.instance;
+
+      // Initialize Google Sign-In (safe to call multiple times).
+      await googleSignIn.initialize();
+
+      // Trigger the authentication flow.
+      final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
+
+      final idToken = googleUser?.authentication.idToken;
+      if (idToken == null) {
+        return AuthFailure('Google sign-in was cancelled.');
+      }
+
+      final credential = GoogleAuthProvider.credential(idToken: idToken);
+
+      final userCredential = await _auth.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      if (user == null) {
+        return AuthFailure('Google sign-in succeeded but no user was returned.');
+      }
+
+      return AuthSuccess(user);
+    } on FirebaseAuthException catch (e) {
+      return AuthFailure(_mapFirebaseError(e));
+    } catch (e) {
+      return AuthFailure('Google sign-in failed: ${e.toString()}');
     }
   }
 

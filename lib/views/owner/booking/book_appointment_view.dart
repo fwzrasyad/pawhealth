@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -309,80 +310,185 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                       width: 1.5,
                     ),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3EFFF),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.local_hospital_outlined,
-                          color: Color(0xFF7C3AED),
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              clinic.name,
-                              style: const TextStyle(
-                                fontFamily: 'Figtree',
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                                color: Color(0xFF1A0F2E),
-                              ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3EFFF),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            const SizedBox(height: 4),
-                            Row(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: clinic.profilePicture.isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl: clinic.profilePicture,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => const Center(
+                                        child: SizedBox(
+                                          width: 20, height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7C3AED)),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) => const Icon(
+                                        Icons.local_hospital_outlined,
+                                        color: Color(0xFF7C3AED),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.local_hospital_outlined,
+                                      color: Color(0xFF7C3AED),
+                                      size: 24,
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
-                                  Icons.location_on,
-                                  size: 11,
-                                  color: Color(0xFF9B8CB8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        clinic.name,
+                                        style: const TextStyle(
+                                          fontFamily: 'Figtree',
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: Color(0xFF1A0F2E),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFECFDF3),
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
+                                      child: const Text(
+                                        'Open now',
+                                        style: TextStyle(
+                                          fontFamily: 'Figtree',
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF15803D),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    clinic.city,
-                                    style: const TextStyle(
-                                      fontFamily: 'Figtree',
-                                      fontSize: 11,
+                                const SizedBox(height: 4),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on,
+                                      size: 12,
                                       color: Color(0xFF9B8CB8),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFECFDF3),
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                  child: const Text(
-                                    'Open now',
-                                    style: TextStyle(
-                                      fontFamily: 'Figtree',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFF15803D),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        clinic.address.isNotEmpty ? '${clinic.address}, ${clinic.city}' : clinic.city,
+                                        style: const TextStyle(
+                                          fontFamily: 'Figtree',
+                                          fontSize: 11,
+                                          color: Color(0xFF9B8CB8),
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
+                                if (clinic.phoneNumber.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.phone,
+                                        size: 12,
+                                        color: Color(0xFF9B8CB8),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        clinic.phoneNumber,
+                                        style: const TextStyle(
+                                          fontFamily: 'Figtree',
+                                          fontSize: 11,
+                                          color: Color(0xFF9B8CB8),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.chevron_right, color: Color(0xFFC4B5FD), size: 16),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right, color: Color(0xFFC4B5FD), size: 16),
+                      if (clinic.description.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          clinic.description,
+                          style: const TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 12,
+                            color: Color(0xFF534AB7),
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      // Google Maps link — falls back to address search if no explicit URL
+                      Builder(
+                        builder: (context) {
+                          final mapsUrl = clinic.googleMapsUrl.isNotEmpty
+                              ? clinic.googleMapsUrl
+                              : (clinic.address.isNotEmpty
+                                  ? 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(clinic.address)}'
+                                  : '');
+                          if (mapsUrl.isEmpty) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: GestureDetector(
+                              onTap: () async {
+                                final uri = Uri.parse(mapsUrl);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                }
+                              },
+                              child: Row(
+                                children: const [
+                                  Icon(Icons.map, size: 14, color: Color(0xFF7C3AED)),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'View on Google Maps',
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF7C3AED),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -536,23 +642,45 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
-                      if (vet.workingHours.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(Icons.schedule, size: 12, color: Color(0xFFB0A4C8)),
-                            const SizedBox(width: 4),
-                            Text(
-                              vet.workingHours,
-                              style: const TextStyle(
-                                fontFamily: 'Figtree',
-                                fontSize: 11,
-                                color: Color(0xFFB0A4C8),
-                              ),
+                      Builder(
+                        builder: (context) {
+                          String scheduleStr = vet.workingHours;
+                          if (vet.weeklySchedule.isNotEmpty) {
+                            final days = vet.weeklySchedule.entries
+                                .where((e) => e.value.isNotEmpty)
+                                .map((e) => e.key.substring(0, 3))
+                                .toList();
+                            if (days.isNotEmpty) {
+                              final firstDaySlots = vet.weeklySchedule.entries.firstWhere((e) => e.value.isNotEmpty).value;
+                              final times = firstDaySlots.length > 1 
+                                  ? '${firstDaySlots.first} - ${firstDaySlots.last}'
+                                  : firstDaySlots.first;
+                              scheduleStr = '${days.join(', ')}: $times';
+                            }
+                          }
+                          if (scheduleStr.isEmpty) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.schedule, size: 12, color: Color(0xFFB0A4C8)),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    scheduleStr,
+                                    style: const TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontSize: 11,
+                                      color: Color(0xFFB0A4C8),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -751,6 +879,10 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _sectionHeader('Consultation Type', Icons.medical_services_outlined),
+                        _buildConsultationTypeSelector(ctrl),
+                        const SizedBox(height: 24),
+
                         _sectionHeader('Select Pet', Icons.pets_outlined),
                         _buildPetSelector(petCtrl),
                         const SizedBox(height: 24),
@@ -868,6 +1000,126 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
     );
   }
 
+  Widget _buildConsultationTypeSelector(AppointmentController ctrl) {
+    final isVirtual = ctrl.consultationType == 'virtual';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF7F5FF),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFEDE8F8)),
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => ctrl.setConsultationType('in_person'),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: !isVirtual ? const Color(0xFF7C3AED) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(11),
+                      boxShadow: !isVirtual
+                          ? [BoxShadow(color: const Color(0xFF7C3AED).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))]
+                          : [],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.local_hospital_outlined,
+                          size: 16,
+                          color: !isVirtual ? Colors.white : const Color(0xFF9B8CB8),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'In-Person',
+                          style: TextStyle(
+                            fontFamily: 'Figtree',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: !isVirtual ? Colors.white : const Color(0xFF9B8CB8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => ctrl.setConsultationType('virtual'),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isVirtual ? const Color(0xFF7C3AED) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(11),
+                      boxShadow: isVirtual
+                          ? [BoxShadow(color: const Color(0xFF7C3AED).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))]
+                          : [],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.videocam_outlined,
+                          size: 16,
+                          color: isVirtual ? Colors.white : const Color(0xFF9B8CB8),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Virtual',
+                          style: TextStyle(
+                            fontFamily: 'Figtree',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: isVirtual ? Colors.white : const Color(0xFF9B8CB8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (isVirtual) ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE8F8),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: const [
+                Icon(Icons.info_outline, size: 14, color: Color(0xFF7C3AED)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'You\'ll join a video call once the vet starts the consultation.',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 11,
+                      color: Color(0xFF534AB7),
+                      height: 1.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildPetSelector(PetController petCtrl) {
     if (petCtrl.pets.isEmpty) {
       return const Text(
@@ -949,20 +1201,29 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
               controller.selectedDate?.month == date.month &&
               controller.selectedDate?.year == date.year;
 
+          bool isAvailable = true;
+          if (controller.selectedVet != null) {
+            final dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            final dayName = dayNames[date.weekday - 1];
+            isAvailable = controller.selectedVet!.slotsForDay(dayName).isNotEmpty;
+          }
+
           return GestureDetector(
-            onTap: () => controller.selectDate(date),
-            child: Container(
-              width: 52,
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF7C3AED) : const Color(0xFFF7F5FF),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected ? const Color(0xFF7C3AED) : const Color(0xFFEDE8F8),
-                  width: 1.5,
+            onTap: isAvailable ? () => controller.selectDate(date) : null,
+            child: Opacity(
+              opacity: isAvailable ? 1.0 : 0.4,
+              child: Container(
+                width: 52,
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF7C3AED) : (isAvailable ? const Color(0xFFF7F5FF) : const Color(0xFFF3F4F6)),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? const Color(0xFF7C3AED) : const Color(0xFFEDE8F8),
+                    width: 1.5,
+                  ),
                 ),
-              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -996,6 +1257,7 @@ class _BookAppointmentViewState extends State<BookAppointmentView> {
                   ),
                 ],
               ),
+            ),
             ),
           );
         },

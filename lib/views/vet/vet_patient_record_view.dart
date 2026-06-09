@@ -220,10 +220,10 @@ class VetPatientRecordView extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // Daily Routine Logs
-                  if (pet.dailyRoutines.isNotEmpty) ...[
+                  // Recovery Plans
+                  if (pet.recoveryPlans.isNotEmpty) ...[
                     const Text(
-                      'Health Logs',
+                      'Recovery Plans',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -231,19 +231,21 @@ class VetPatientRecordView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ...pet.dailyRoutines.map(
-                      (log) => Container(
+                    ...pet.recoveryPlans.map(
+                      (plan) => Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: plan.status == 'active' ? const Color(0xFFF7F5FF) : Colors.white,
                           borderRadius: BorderRadius.circular(16),
+                          border: plan.status == 'active' ? Border.all(color: const Color(0xFFEDE8F8)) : Border.all(color: const Color(0xFFF3F4F6)),
                           boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
+                            if (plan.status != 'active')
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
                           ],
                         ),
                         child: Column(
@@ -252,35 +254,32 @@ class VetPatientRecordView extends StatelessWidget {
                             Row(
                               children: [
                                 Icon(
-                                  Icons.event_note,
+                                  Icons.healing,
                                   size: 14,
-                                  color: AppColors.primary,
+                                  color: plan.status == 'active' ? const Color(0xFF7C3AED) : AppColors.primary,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  DateFormat('MMM d, yyyy').format(log.date),
+                                  'Duration: ${plan.durationDays} days',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
-                                    color: AppColors.primary,
+                                    color: plan.status == 'active' ? const Color(0xFF7C3AED) : AppColors.primary,
                                   ),
                                 ),
                                 const Spacer(),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 3,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: AppColors.chipBg,
+                                    color: plan.status == 'active' ? const Color(0xFF7C3AED).withValues(alpha: 0.1) : AppColors.chipBg,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    log.activityLevel,
+                                    plan.status.toUpperCase(),
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
+                                      color: plan.status == 'active' ? const Color(0xFF7C3AED) : AppColors.primary,
                                     ),
                                   ),
                                 ),
@@ -288,20 +287,71 @@ class VetPatientRecordView extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             _LogDetail(
-                              icon: Icons.restaurant,
-                              label: 'Diet',
-                              value: log.dietNotes,
-                            ),
-                            _LogDetail(
-                              icon: Icons.monitor_weight_outlined,
-                              label: 'Weight',
-                              value: '${log.weight} kg',
+                              icon: Icons.notes,
+                              label: 'Instructions',
+                              value: plan.instructions,
                             ),
                           ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 14),
+                  ],
+
+                  // Vaccination History
+                  if (pet.vaccinations.isNotEmpty) ...[
+                    const Text(
+                      'Vaccination History',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: pet.vaccinations.map((v) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFBBF7D0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.vaccines, size: 14, color: const Color(0xFF16A34A)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    v.vaccineName,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF166534),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${DateFormat('MMM d, yyyy').format(v.dateAdministered)} • ${v.isCore ? 'Core' : 'Non-Core'}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF15803D),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
                   ],
 
                   // Medical Records

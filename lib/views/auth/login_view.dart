@@ -74,6 +74,13 @@ class _LoginViewState extends State<LoginView> {
     }
   }
 
+  Future<void> _loginWithGoogle() async {
+    final role = await context.read<AuthController>().loginWithGoogle();
+    if (role != null && mounted) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthController>().isLoading;
@@ -333,7 +340,7 @@ class _LoginViewState extends State<LoginView> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: isLoading ? null : _loginWithGoogle,
                             style: AppDecor.outlineButton(),
                             icon: Text(
                               'G',
@@ -348,18 +355,20 @@ class _LoginViewState extends State<LoginView> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            style: AppDecor.outlineButton(),
-                            icon: Icon(Icons.apple, size: 20),
-                            label: Text(
-                              'Apple',
-                              style: AppFonts.body(fontSize: 13),
+                        if (Theme.of(context).platform == TargetPlatform.iOS || Theme.of(context).platform == TargetPlatform.macOS) ...[
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {},
+                              style: AppDecor.outlineButton(),
+                              icon: Icon(Icons.apple, size: 20),
+                              label: Text(
+                                'Apple',
+                                style: AppFonts.body(fontSize: 13),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 28),

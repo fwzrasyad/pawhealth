@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Video Call Permissions (Agora RTC) -->
+	<key>NSCameraUsageDescription</key>
+	<string>PawHealth needs camera access for video consultations with your veterinarian</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PawHealth needs microphone access for video consultations with your veterinarian</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

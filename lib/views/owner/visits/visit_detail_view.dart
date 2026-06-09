@@ -5,13 +5,14 @@ import 'package:intl/intl.dart';
 import '../../../controllers/appointment_controller.dart';
 import '../../../models/appointment_model.dart';
 import '../booking/book_appointment_view.dart';
+import '../../video_call/video_call_view.dart';
+import '../../video_call/video_call_waiting_view.dart';
 
 class VisitDetailView extends StatelessWidget {
   final Appointment appointment;
 
   const VisitDetailView({super.key, required this.appointment});
 
-  
   
 
   String _emoji(String vetName) {
@@ -39,7 +40,7 @@ class VisitDetailView extends StatelessWidget {
       backgroundColor: AppColors.lightSurface,
       appBar: AppBar(
         title: Text(
-          'Visit Details',
+          'Consultation Details',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -99,18 +100,10 @@ class VisitDetailView extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'PawHealth Vet Clinic',
+                          live.clinicName.isNotEmpty ? live.clinicName : 'PawHealth Vet Clinic',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '9:00 AM – 10:00 PM',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
                           ),
                         ),
                       ],
@@ -120,7 +113,19 @@ class VisitDetailView extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Consultation type badge
+            _buildConsultationTypeBadge(live),
+
+            const SizedBox(height: 16),
+
+            // Video call section (for virtual appointments)
+            if (live.isVirtual && isActive)
+              _buildVideoCallSection(context, ctrl, live),
+
+            if (live.isVirtual && isActive)
+              const SizedBox(height: 16),
 
             // Status badge
             _buildStatusRow(live.status),
@@ -216,6 +221,195 @@ class VisitDetailView extends StatelessWidget {
     );
   }
 
+  Widget _buildConsultationTypeBadge(Appointment appt) {
+    final isVirtual = appt.isVirtual;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isVirtual ? const Color(0xFFF0E8FF) : const Color(0xFFECFDF3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isVirtual ? const Color(0xFFD4BFFF) : const Color(0xFFBBF7D0),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isVirtual ? Icons.videocam : Icons.local_hospital,
+            size: 16,
+            color: isVirtual ? const Color(0xFF7C3AED) : const Color(0xFF15803D),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            isVirtual ? 'Virtual Consultation' : 'In-Person Visit',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isVirtual ? const Color(0xFF7C3AED) : const Color(0xFF15803D),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoCallSection(BuildContext context, AppointmentController ctrl, Appointment live) {
+    final isConfirmed = live.status == AppointmentStatus.confirmed;
+    final isCallActive = live.isCallActive;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: isCallActive
+            ? const LinearGradient(colors: [Color(0xFF7C3AED), Color(0xFF5B21B6)])
+            : null,
+        color: isCallActive ? null : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: isCallActive
+                ? const Color(0xFF7C3AED).withOpacity(0.3)
+                : Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.videocam,
+                size: 18,
+                color: isCallActive ? Colors.white : const Color(0xFF7C3AED),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Video Consultation',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: isCallActive ? Colors.white : Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (!isConfirmed)
+            Text(
+              'The video call will be available once the vet confirms your appointment.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade500,
+                height: 1.4,
+              ),
+            )
+          else if (isCallActive)
+            Column(
+              children: [
+                Text(
+                  'The vet has started the consultation!',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _joinVideoCall(context, ctrl, live),
+                    icon: const Icon(Icons.videocam, color: Color(0xFF7C3AED), size: 18),
+                    label: const Text(
+                      'Join Video Call',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF7C3AED),
+                        fontSize: 14,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            Column(
+              children: [
+                Text(
+                  'Waiting for the vet to start the video call...',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VideoCallWaitingView(appointment: live),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.hourglass_top, size: 16, color: Color(0xFF7C3AED)),
+                    label: const Text(
+                      'Enter Waiting Room',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: Color(0xFF7C3AED),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFD4BFFF)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _joinVideoCall(BuildContext context, AppointmentController ctrl, Appointment live) async {
+    final response = await ctrl.getCallStatus(live.appointmentId);
+    if (response != null && response['active'] == true) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VideoCallView(
+            appId: response['app_id'],
+            token: response['token'],
+            channelName: response['channel'],
+            uid: response['uid'] ?? 2,
+            remoteName: live.vetName,
+            onCallEnded: () {
+              ctrl.endVideoCall(live.appointmentId).catchError((e) {
+                debugPrint('Call ended or error: $e');
+              });
+            },
+          ),
+        ),
+      );
+    }
+  }
+
   Widget _buildStatusRow(AppointmentStatus status) {
     final map = {
       AppointmentStatus.confirmed: ('Confirmed', AppColors.healthGreenBg, AppColors.completedText),
@@ -265,13 +459,15 @@ class VisitDetailView extends StatelessWidget {
         children: [
           Icon(r.icon, color: AppColors.primary, size: 18),
           const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(r.label, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-              const SizedBox(height: 2),
-              Text(r.value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(r.label, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                const SizedBox(height: 2),
+                Text(r.value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black)),
+              ],
+            ),
           ),
         ],
       ),

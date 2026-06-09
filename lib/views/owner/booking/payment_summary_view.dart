@@ -348,6 +348,7 @@ class _PaymentSummaryViewState extends State<PaymentSummaryView> {
                         _buildSummaryRow('Pet', widget.petName),
                         _buildSummaryRow('Date', date != null ? DateFormat('EEEE, MMM d, yyyy').format(date) : ''),
                         _buildSummaryRow('Time', time != null ? DateFormat('h:mm a').format(time) : ''),
+                        _buildSummaryRow('Type', ctrl.consultationType == 'virtual' ? '📹 Virtual Consultation' : '🏥 In-Person Visit'),
                         _buildSummaryRow('Consultation Fee', _amount != null ? 'RM ${_amount!.toStringAsFixed(2)}' : 'RM 0.00', isFee: true),
                         
                         const SizedBox(height: 16),

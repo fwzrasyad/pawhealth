@@ -1,8 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../../controllers/smart_analyzer_controller.dart';
-import 'analysis_result_view.dart';
+import 'ai_results_view.dart';
 
 class AnalyzingLoadingView extends StatefulWidget {
   const AnalyzingLoadingView({super.key});
@@ -13,9 +14,6 @@ class AnalyzingLoadingView extends StatefulWidget {
 
 class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
     with SingleTickerProviderStateMixin {
-  
-  
-
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -30,8 +28,8 @@ class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // Once analysis finishes, navigate to result
-    _waitForResult();
+    // Once analysis finishes, navigate to result — deferred to after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) => _waitForResult());
   }
 
   Future<void> _waitForResult() async {
@@ -40,12 +38,33 @@ class _AnalyzingLoadingViewState extends State<AnalyzingLoadingView>
     while (controller.isAnalyzing) {
       await Future.delayed(const Duration(milliseconds: 200));
     }
-    if (mounted && controller.currentScanResult != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AnalysisResultView()),
-      );
-    }
+    if (!mounted) return;
+    
+    // Schedule navigation for after the current frame to avoid navigator locks
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (controller.currentScanResult != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AIResultsView(
+              imageFile: File(controller.selectedImagePath ?? ''),
+              label: controller.currentScanResult!.aiResultLabel,
+              confidence: controller.currentScanResult!.confidenceScore,
+            ),
+          ),
+        );
+      } else {
+        // Analysis failed
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to analyze image. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
   }
 
   @override

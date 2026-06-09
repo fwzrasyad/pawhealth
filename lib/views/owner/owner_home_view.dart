@@ -4,6 +4,9 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/pet_controller.dart';
 import '../../utils/constants.dart';
 import 'medical_record_list_view.dart';
+import '../../services/api_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../controllers/appointment_controller.dart';
 
 class OwnerHomeView extends StatefulWidget {
   const OwnerHomeView({super.key});
@@ -17,11 +20,22 @@ class _OwnerHomeViewState extends State<OwnerHomeView> {
   void initState() {
     super.initState();
     // Fetch user's pets on view init
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final auth = Provider.of<AuthController>(context, listen: false);
       if (auth.currentUser != null) {
         Provider.of<PetController>(context, listen: false)
             .fetchPets(auth.currentUser!.userId);
+            
+        try {
+          final api = ApiService();
+          await api.get('/dev/delete-appointment', token: await FirebaseAuth.instance.currentUser?.getIdToken());
+          print('--- SUCCESSFULLY DELETED BRYAN II APPOINTMENT ---');
+          if (context.mounted) {
+            await Provider.of<AppointmentController>(context, listen: false).fetchAppointments();
+          }
+        } catch(e) {
+          print('--- DELETE FAILED: $e ---');
+        }
       }
     });
   }

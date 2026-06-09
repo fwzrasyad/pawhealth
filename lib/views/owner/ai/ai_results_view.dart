@@ -15,9 +15,6 @@ class AIResultsView extends StatelessWidget {
     required this.confidence,
   });
 
-  
-  
-
   // Data Map for the 6 labels
   static const Map<String, Map<String, String>> diseaseData = {
     'Ear Mites': {
@@ -44,11 +41,16 @@ class AIResultsView extends StatelessWidget {
       'Information': 'Also known as Sarcoptic mange, scabies is caused by mites burrowing into the skin. It causes intense itching, hair loss, and crusty skin, and is highly contagious.',
       'Care Steps': '1. Keep the pet isolated from other animals.\n2. Wash bedding in hot water and sanitize the environment.\n3. Immediate veterinary intervention is needed for prescription parasiticides.',
     },
+    'Uncertain': {
+      'Information': 'The AI could not identify the condition with high confidence (>95%). This can happen if the image is blurry, poorly lit, or does not clearly show a recognized condition.',
+      'Care Steps': '1. Take a clearer, closer photo of the affected area.\n2. Ensure the area is well-lit.\n3. If you remain concerned, consult a veterinarian.',
+    },
   };
 
   @override
   Widget build(BuildContext context) {
     final bool isHealthy = label.toLowerCase() == 'healthy cat';
+    final bool isUncertain = label.toLowerCase() == 'uncertain';
     final data = diseaseData[label] ?? {
       'Information': 'Information not available for this condition.',
       'Care Steps': 'Consult your veterinarian for appropriate care steps.'
@@ -57,71 +59,270 @@ class AIResultsView extends StatelessWidget {
     final int confidencePercentage = (confidence * 100).round();
     
     // The required pre-filled reason text
-    final String preFilledReason = "PawHealth AI detected a $confidencePercentage% probability of $label. Seeking clinical confirmation and treatment.";
+    final String preFilledReason = isUncertain 
+        ? "Seeking clinical confirmation for uncertain symptoms."
+        : "PawHealth AI detected a $confidencePercentage% probability of $label. Seeking clinical confirmation and treatment.";
 
     return Scaffold(
-      backgroundColor: AppColors.lightSurface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Analysis Results',
-          style: AppFonts.bodyBold(fontSize: 17),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.darkText, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Image and basic result
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.file(
-                      imageFile,
-                      height: 220,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+      backgroundColor: const Color(0xFF7C3AED),
+      body: Column(
+        children: [
+          _buildHero(context),
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF7F5FF),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Icon(
-                        isHealthy ? Icons.check_circle : Icons.warning_rounded,
-                        color: isHealthy ? Colors.green : Colors.orange,
-                        size: 32,
+                      // Image and basic result
+                      Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.file(
+                                imageFile,
+                                height: 220,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isUncertain 
+                                        ? const Color(0xFFF3EFFF)
+                                        : (isHealthy ? const Color(0xFFECFDF3) : const Color(0xFFFEF2F2)),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Icon(
+                                    isUncertain 
+                                        ? Icons.help_outline_rounded 
+                                        : (isHealthy ? Icons.check_circle : Icons.warning_rounded),
+                                    color: isUncertain 
+                                        ? const Color(0xFF7C3AED)
+                                        : (isHealthy ? const Color(0xFF15803D) : const Color(0xFFDC2626)),
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        label,
+                                        style: const TextStyle(
+                                          fontFamily: 'Figtree',
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF1A0F2E),
+                                          letterSpacing: -0.3,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: isUncertain 
+                                              ? const Color(0xFF7C3AED)
+                                              : (isHealthy ? const Color(0xFF15803D) : const Color(0xFFDC2626)),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          isUncertain 
+                                              ? 'Too low ($confidencePercentage%)' 
+                                              : '$confidencePercentage% Confidence',
+                                          style: const TextStyle(
+                                            fontFamily: 'Figtree',
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
+                      
+                      const SizedBox(height: 16),
+                      
+                      // Information Section
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              label,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                            _buildSectionHeader('Information', Icons.info_outline),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: const Color(0xFFEDE8F8)),
+                              ),
+                              child: Text(
+                                data['Information']!,
+                                style: const TextStyle(
+                                  fontFamily: 'Figtree',
+                                  fontSize: 14,
+                                  color: Color(0xFF1A0F2E),
+                                  height: 1.5,
+                                ),
                               ),
                             ),
+                            
+                            const SizedBox(height: 24),
+                            
+                            _buildSectionHeader('Care Steps', Icons.health_and_safety_outlined),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: const Color(0xFFEDE8F8)),
+                              ),
+                              child: Text(
+                                data['Care Steps']!,
+                                style: const TextStyle(
+                                  fontFamily: 'Figtree',
+                                  fontSize: 14,
+                                  color: Color(0xFF1A0F2E),
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // Smart Recommender Action Card
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(20, 0, 20, 40),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: isUncertain 
+                              ? const Color(0xFFF3EFFF)
+                              : (isHealthy ? const Color(0xFFECFDF3) : const Color(0xFFFEF2F2)),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isUncertain 
+                              ? const Color(0xFFDDD8F5)
+                              : (isHealthy ? const Color(0xFFD1FAE5) : const Color(0xFFFECACA)),
+                          )
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  isUncertain 
+                                      ? Icons.camera_alt_outlined 
+                                      : (isHealthy ? Icons.thumb_up_alt_outlined : Icons.medical_services_outlined),
+                                  color: isUncertain 
+                                      ? const Color(0xFF7C3AED)
+                                      : (isHealthy ? const Color(0xFF15803D) : const Color(0xFFDC2626)),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  isUncertain 
+                                      ? 'Please Try Again'
+                                      : (isHealthy ? 'Recommendation' : 'Urgent Action Required'),
+                                  style: TextStyle(
+                                    fontFamily: 'Figtree',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: isUncertain 
+                                        ? const Color(0xFF5B4B8A)
+                                        : (isHealthy ? const Color(0xFF166534) : const Color(0xFF991B1B)),
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
                             Text(
-                              'Confidence: $confidencePercentage%',
+                              isUncertain
+                                  ? 'We couldn\'t confidently analyze the image. Please take a clearer photo, or consult a clinic if you are concerned.'
+                                  : (isHealthy 
+                                      ? 'Continue your standard daily care. Consider booking a routine checkup to keep your pet in top shape.'
+                                      : 'A potential skin condition or parasite has been detected. We highly recommend booking an appointment with a clinic for proper diagnosis and treatment.'),
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey.shade600,
+                                fontFamily: 'Figtree',
+                                fontSize: 13,
+                                color: isUncertain 
+                                    ? const Color(0xFF7C3AED)
+                                    : (isHealthy ? const Color(0xFF15803D) : const Color(0xFFDC2626)),
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (isUncertain) {
+                                    Navigator.of(context).pop();
+                                  } else {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => BookAppointmentView(
+                                          initialReason: preFilledReason,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isUncertain 
+                                      ? const Color(0xFF7C3AED)
+                                      : (isHealthy ? const Color(0xFF15803D) : const Color(0xFFDC2626)),
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  isUncertain 
+                                      ? 'Scan Again'
+                                      : (isHealthy ? 'Book Routine Checkup' : 'Find a Clinic Now'),
+                                  style: const TextStyle(
+                                    fontFamily: 'Figtree',
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -129,156 +330,86 @@ class AIResultsView extends StatelessWidget {
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
-            
-            const SizedBox(height: 16),
-            
-            // Information Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionHeader('Information', Icons.info_outline),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))
-                      ]
-                    ),
-                    child: Text(
-                      data['Information']!,
-                      style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  _buildSectionHeader('Care Steps', Icons.health_and_safety_outlined),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))
-                      ]
-                    ),
-                    child: Text(
-                      data['Care Steps']!,
-                      style: const TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Smart Recommender Action Card
-            Container(
-              margin: const EdgeInsets.fromLTRB(24, 0, 24, 40),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isHealthy ? const Color(0xFFC8E6C9) : const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        isHealthy ? Icons.thumb_up_alt_outlined : Icons.medical_services_outlined,
-                        color: isHealthy ? Colors.green.shade700 : Colors.deepOrange.shade700,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        isHealthy ? 'Recommendation' : 'Urgent Action Required',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isHealthy ? Colors.green.shade900 : Colors.deepOrange.shade900,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    isHealthy 
-                        ? 'Continue your standard daily care. Consider booking a routine checkup to keep your pet in top shape.'
-                        : 'A potential skin condition or parasite has been detected. We highly recommend booking an appointment with a clinic for proper diagnosis and treatment.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isHealthy ? Colors.green.shade900 : Colors.deepOrange.shade900,
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BookAppointmentView(
-                              initialReason: preFilledReason,
-                            ),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isHealthy ? Colors.green.shade600 : Colors.deepOrange.shade600,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        isHealthy ? 'Book Routine Checkup' : 'Find a Clinic Now',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildHero(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          top: -40,
+          left: -40,
+          child: Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+        Positioned(
+          top: -20,
+          right: -20,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF4C1D95).withValues(alpha: 0.3),
+            ),
+          ),
+        ),
+        SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 8, 20, 20),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                const Expanded(
+                  child: Text(
+                    'Analysis Results',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.chipBg,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 18),
-        ),
-        const SizedBox(width: 12),
+        Icon(icon, color: const Color(0xFF7C3AED), size: 20),
+        const SizedBox(width: 10),
         Text(
           title,
           style: const TextStyle(
-            fontWeight: FontWeight.bold,
+            fontFamily: 'Figtree',
+            fontWeight: FontWeight.w600,
             fontSize: 16,
-            color: Colors.black87,
+            color: Color(0xFF1A0F2E),
+            letterSpacing: -0.2,
           ),
         ),
       ],

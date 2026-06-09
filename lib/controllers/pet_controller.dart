@@ -5,7 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import '../models/pet_model.dart';
-import '../models/daily_routine_model.dart';
+import '../models/recovery_plan_model.dart';
+import '../models/vaccination_record_model.dart';
 import '../models/health_journal_model.dart';
 
 class PetController extends ChangeNotifier {
@@ -106,38 +107,62 @@ class PetController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── Add Daily Routine Log ─────────────────────────────────────────────────
+  // ── Recovery Plan & Logs ──
 
-  /// Adds a daily routine log for a specific pet via the backend API.
-  Future<void> addDailyRoutineLog(String petId, DailyRoutineLog log) async {
+  Future<void> addRecoveryLog(String planId, RecoveryLog log) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final token = await _getToken();
       await _apiService.post(
-        '/pets/$petId/daily-routines',
+        '/recovery-plans/$planId/logs',
         log.toJson(),
         token,
       );
 
-      // Update local state to reflect the new log
-      final index = _pets.indexWhere((p) => p.petId == petId);
-      if (index != -1) {
-        final updatedRoutines = List<DailyRoutineLog>.from(
-          _pets[index].dailyRoutines,
-        )..add(log);
-        final updatedPet = _pets[index].copyWith(
-          dailyRoutines: updatedRoutines,
-          weight: log.weight,
-        );
-        _pets[index] = updatedPet;
-        if (_selectedPet?.petId == petId) _selectedPet = updatedPet;
-      }
+      // We should ideally re-fetch the pet or the specific recovery plan
+      // to keep it in sync. For now, we assume the UI will re-fetch or optimistically update.
     } catch (e) {
-      debugPrint('Error adding daily routine log: $e');
+      debugPrint('Error adding recovery log: $e');
     }
 
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  // ── Vaccinations ──
+
+  Future<void> fetchVaccinations(String petId) async {
+    // Usually called individually, or loaded with the pet
+  }
+
+  Future<void> addVaccinationRecord(String petId, VaccinationRecord record) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post(
+        '/pets/$petId/vaccinations',
+        record.toJson(),
+        token,
+      );
+      
+      // Update local pet vaccinations
+      final petIndex = _pets.indexWhere((p) => p.petId == petId);
+      if (petIndex != -1) {
+        final currentPet = _pets[petIndex];
+        final newVaccination = VaccinationRecord.fromJson(response['data'] ?? response);
+        
+        final updatedVaccinations = List<VaccinationRecord>.from(currentPet.vaccinations)..add(newVaccination);
+        final updated = currentPet.copyWith(vaccinations: updatedVaccinations);
+        _pets[petIndex] = updated;
+        if (_selectedPet?.petId == petId) _selectedPet = updated;
+      }
+    } catch (e) {
+      debugPrint('Error adding vaccination: $e');
+      rethrow;
+    }
     _isLoading = false;
     notifyListeners();
   }

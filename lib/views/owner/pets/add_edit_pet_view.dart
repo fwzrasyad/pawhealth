@@ -119,7 +119,8 @@ class _AddEditPetViewState extends State<AddEditPetView> {
       gender: _selectedGender!,
       weight: double.parse(_weightController.text.trim()),
       profileImageUrl: latestPet?.profileImageUrl,
-      dailyRoutines: latestPet?.dailyRoutines ?? [],
+      vaccinations: latestPet?.vaccinations ?? [],
+      recoveryPlans: latestPet?.recoveryPlans ?? [],
     );
 
     if (_isEditing) {

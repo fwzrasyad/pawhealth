@@ -303,7 +303,28 @@ class VetController extends ChangeNotifier {
       final token = await _getToken();
       final response = await _apiService.get('/appointments', token: token);
       final List<dynamic> data = response['data'] ?? response;
+      
+      // Debug: log the first appointment's raw JSON to see what fields are available
+      if (data.isNotEmpty) {
+        debugPrint('=== RAW APPOINTMENT JSON (first) ===');
+        debugPrint('Keys: ${(data.first as Map).keys.toList()}');
+        if (data.first['pet'] != null) {
+          debugPrint('Pet object keys: ${(data.first['pet'] as Map).keys.toList()}');
+          debugPrint('Pet object: ${data.first['pet']}');
+        } else {
+          debugPrint('No nested "pet" object in appointment JSON');
+        }
+      }
+      
       _appointments = data.map((json) => Appointment.fromJson(json)).toList();
+      
+      // Debug: log the parsed petProfileUrl
+      for (final appt in _appointments) {
+        debugPrint('Appointment ${appt.appointmentId}: petProfileUrl=${appt.petProfileUrl}');
+      }
+      
+      // Build pet objects from the appointment JSON data (since GET /pets/{id} is owner-scoped)
+      _buildPetsFromAppointmentData(data);
     } catch (e) {
       debugPrint('Error fetching vet appointments: $e');
     }
@@ -312,22 +333,48 @@ class VetController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Fetches patient pets the vet has access to.
-  Future<void> fetchPatients() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final token = await _getToken();
-      final response = await _apiService.get('/pets', token: token);
-      final List<dynamic> data = response['data'] ?? response;
-      _pets = data.map((json) => Pet.fromJson(json)).toList();
-    } catch (e) {
-      debugPrint('Error fetching patients: $e');
+  /// Builds Pet objects from the nested pet data in appointment JSON responses.
+  /// This avoids calling GET /pets/{id} which is owner-scoped and fails for vets.
+  void _buildPetsFromAppointmentData(List<dynamic> appointmentJsonList) {
+    final Map<String, Pet> petMap = {};
+    
+    for (final json in appointmentJsonList) {
+      final petId = json['pet_id']?.toString() ?? '';
+      if (petId.isEmpty || petMap.containsKey(petId)) continue;
+      
+      // Build a minimal Pet from the nested 'pet' object in the appointment.
+      // The appointment only includes pet_id, name, and profile_image_url.
+      if (json['pet'] != null && json['pet'] is Map) {
+        try {
+          final petJson = json['pet'];
+          final pet = Pet(
+            petId: petJson['pet_id']?.toString() ?? petId,
+            ownerId: petJson['owner_id']?.toString() ?? '',
+            name: petJson['name']?.toString() ?? json['pet_name']?.toString() ?? '',
+            species: petJson['species']?.toString() ?? '',
+            breed: petJson['breed']?.toString() ?? '',
+            age: (petJson['age'] as int?) ?? 0,
+            gender: petJson['gender']?.toString() ?? '',
+            weight: (petJson['weight'] as num?)?.toDouble() ?? 0.0,
+            profileImageUrl: petJson['profile_image_url']?.toString(),
+          );
+          petMap[petId] = pet;
+          debugPrint('Built Pet from appointment data: ${pet.name}, image=${pet.profileImageUrl}');
+        } catch (e) {
+          debugPrint('Error parsing pet from appointment JSON: $e');
+        }
+      }
     }
+    
+    _pets = petMap.values.toList();
+    debugPrint('Total pets built from appointment data: ${_pets.length}');
+  }
 
-    _isLoading = false;
-    notifyListeners();
+  /// Fetches patient pets the vet has access to.
+  /// Note: This is kept as a no-op fallback. Pets are now built from appointment data.
+  Future<void> fetchPatients() async {
+    // Pets are now built from appointment data in _buildPetsFromAppointmentData.
+    // This method is kept for backward compatibility but does nothing additional.
   }
 
   /// Fetches medical records for a specific pet.
@@ -431,6 +478,10 @@ class VetController extends ChangeNotifier {
     required String doctorNotes,
     required List<String> medicationsPrescribed,
     required String followUpInstructions,
+    bool startRecoveryPlan = false,
+    int recoveryDurationDays = 7,
+    String recoveryInstructions = '',
+    List<Map<String, dynamic>> administeredVaccines = const [],
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -449,6 +500,39 @@ class VetController extends ChangeNotifier {
       final created = MedicalRecord.fromJson(response['data'] ?? response);
       _medicalRecords.insert(0, created);
 
+      // Submit Vaccines
+      if (administeredVaccines.isNotEmpty) {
+        for (final vaccineData in administeredVaccines) {
+          try {
+            await _apiService.post('/pets/$petId/vaccinations', {
+              ...vaccineData,
+              'record_id': created.recordId,
+            }, token);
+          } catch (e) {
+            debugPrint('Failed to submit vaccine: $e');
+          }
+        }
+      }
+
+      // Start Recovery Plan
+      if (startRecoveryPlan) {
+        try {
+          await _apiService.post('/pets/$petId/recovery-plans', {
+            'instructions': recoveryInstructions,
+            'duration_days': recoveryDurationDays,
+            'appointment_id': appointmentId,
+          }, token);
+        } catch (e) {
+          debugPrint('Failed to start recovery plan: $e');
+        }
+      }
+
+      // Also update the appointment's medicalRecord so it persists across navigations
+      final idx = _appointments.indexWhere((a) => a.appointmentId == appointmentId);
+      if (idx != -1) {
+        _appointments[idx] = _appointments[idx].copyWith(medicalRecord: created);
+      }
+
       _isLoading = false;
       notifyListeners();
       return created;
@@ -462,12 +546,22 @@ class VetController extends ChangeNotifier {
 
   /// Fetches the medical record linked to a specific appointment (if any).
   Future<MedicalRecord?> fetchMedicalRecordForAppointment(String appointmentId) async {
+    // 1. Check local cache first
     try {
-      final token = await _getToken();
-      final response = await _apiService.get('/medical-records?appointment_id=$appointmentId', token: token);
-      final List<dynamic> data = response['data'] ?? response;
-      if (data.isNotEmpty) {
-        return MedicalRecord.fromJson(data.first);
+      return _medicalRecords.firstWhere((r) => r.appointmentId == appointmentId);
+    } catch (_) {}
+
+    // 2. Fetch from API (via the pet's medical records endpoint, since GET /medical-records is not supported)
+    try {
+      final appt = _appointments.firstWhere((a) => a.appointmentId == appointmentId);
+      if (appt.petId.isNotEmpty) {
+        // Fetch all medical records for this pet (this updates _medicalRecords)
+        await fetchMedicalRecords(appt.petId);
+        
+        // Return the one matching the appointment
+        try {
+          return _medicalRecords.firstWhere((r) => r.appointmentId == appointmentId);
+        } catch (_) {}
       }
     } catch (e) {
       debugPrint('Error fetching medical record for appointment: $e');
@@ -487,6 +581,91 @@ class VetController extends ChangeNotifier {
       return _pets.firstWhere((p) => p.petId == petId);
     } catch (_) {
       return null;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  VIDEO CALL MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Starts a video call for a confirmed virtual appointment.
+  /// Returns the Agora channel info { channel, token, uid, app_id }.
+  Future<Map<String, dynamic>?> startVideoCall(String appointmentId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post(
+        '/appointments/$appointmentId/start-call',
+        {},
+        token,
+      );
+      // Update local state
+      final idx = _appointments.indexWhere((a) => a.appointmentId == appointmentId);
+      if (idx != -1) {
+        _appointments[idx] = _appointments[idx].copyWith(
+          videoCallStatus: 'active',
+          videoCallChannel: response['channel'],
+        );
+      }
+      _isLoading = false;
+      notifyListeners();
+      return response;
+    } catch (e) {
+      debugPrint('Error starting video call: $e');
+      _isLoading = false;
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// Ends the video call and marks the appointment as completed.
+  Future<bool> endVideoCall(String appointmentId) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      await _apiService.post(
+        '/appointments/$appointmentId/end-call',
+        {},
+        token,
+      );
+      // Update local state
+      final idx = _appointments.indexWhere((a) => a.appointmentId == appointmentId);
+      if (idx != -1) {
+        _appointments[idx] = _appointments[idx].copyWith(
+          videoCallStatus: 'ended',
+          status: AppointmentStatus.completed,
+        );
+      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error ending video call: $e');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Returns an emoji based on the pet's species, or a default paw print.
+  String getPetEmoji(String species) {
+    switch (species.toLowerCase()) {
+      case 'dog':
+        return '🐶';
+      case 'cat':
+        return '🐱';
+      case 'bird':
+        return '🦜';
+      case 'rabbit':
+        return '🐰';
+      case 'reptile':
+        return '🦎';
+      default:
+        return '🐾';
     }
   }
 }

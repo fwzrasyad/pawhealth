@@ -136,6 +136,43 @@ class AuthController extends ChangeNotifier {
     return null;
   }
 
+  /// Signs in using Google.
+  ///
+  /// After Firebase authentication succeeds, POSTs to `/auth/sync` so the
+  /// Laravel backend creates or updates the MySQL user record.
+  /// Returns the authenticated [UserRole] on success, or `null` on failure.
+  Future<UserRole?> loginWithGoogle() async {
+    _setLoading(true);
+
+    final result = await _authService.signInWithGoogle();
+
+    if (result is AuthSuccess) {
+      try {
+        final token = await result.user.getIdToken();
+
+        // Sync with Laravel backend
+        final response = await _apiService.post('/auth/sync', {
+          'name': result.user.displayName ?? 'Google User',
+          'email': result.user.email ?? '',
+        }, token);
+
+        final userData = response['data'] ?? response;
+        _currentUser = User.fromJson(userData);
+
+        _setLoading(false);
+        return _currentUser!.role;
+      } catch (e) {
+        _errorMessage = 'Signed in with Google but failed to sync with server: $e';
+        debugPrint('Auth sync error on google login: $e');
+      }
+    } else if (result is AuthFailure) {
+      _errorMessage = result.message;
+    }
+
+    _setLoading(false);
+    return null;
+  }
+
   /// Creates a new account, then syncs user data with the Laravel backend.
   /// If the role is [UserRole.vet], also creates a veterinarian profile.
   ///

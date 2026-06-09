@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../controllers/vet_controller.dart';
 import '../../../models/appointment_model.dart';
 import '../../../models/medical_record_model.dart';
+import '../video_call/video_call_view.dart';
 
 class VetAppointmentDetailsView extends StatefulWidget {
   final Appointment appointment;
@@ -15,34 +16,47 @@ class VetAppointmentDetailsView extends StatefulWidget {
 }
 
 class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
-  
-  
-
   late Appointment _appointment;
   MedicalRecord? _existingRecord;
   bool _loadingRecord = true;
   bool _processing = false;
   bool _notesSubmitted = false;
 
-  // Clinical Notes form controllers
   final _formKey = GlobalKey<FormState>();
   final _diagnosisCtrl = TextEditingController();
   final _doctorNotesCtrl = TextEditingController();
   final _medicationsCtrl = TextEditingController();
   final _followUpCtrl = TextEditingController();
 
-  // Medications list
+  // Recovery Plan
+  bool _startRecoveryPlan = false;
+  final _recoveryDurationCtrl = TextEditingController(text: '7');
+  final _recoveryInstructionsCtrl = TextEditingController();
+
   List<String> _medications = [];
+  List<Map<String, dynamic>> _administeredVaccines = [];
 
   @override
   void initState() {
     super.initState();
     _appointment = widget.appointment;
-    _loadExistingRecord();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadExistingRecord();
+    });
   }
 
   Future<void> _loadExistingRecord() async {
     if (_appointment.status == AppointmentStatus.completed) {
+      if (_appointment.medicalRecord != null) {
+        if (mounted) {
+          setState(() {
+            _existingRecord = _appointment.medicalRecord;
+            _loadingRecord = false;
+            _notesSubmitted = true;
+          });
+        }
+        return;
+      }
       final vc = context.read<VetController>();
       final record = await vc.fetchMedicalRecordForAppointment(_appointment.appointmentId);
       if (mounted) {
@@ -53,7 +67,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
         });
       }
     } else {
-      setState(() => _loadingRecord = false);
+      if (mounted) setState(() => _loadingRecord = false);
     }
   }
 
@@ -63,6 +77,8 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
     _doctorNotesCtrl.dispose();
     _medicationsCtrl.dispose();
     _followUpCtrl.dispose();
+    _recoveryDurationCtrl.dispose();
+    _recoveryInstructionsCtrl.dispose();
     super.dispose();
   }
 
@@ -75,7 +91,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
         _appointment = _appointment.copyWith(status: AppointmentStatus.confirmed);
         _processing = false;
       });
-      _showSnackBar('Appointment approved', Icons.check_circle, Colors.green);
+      _showSnackBar('Appointment approved', Icons.check_circle, const Color(0xFF15803D));
     }
   }
 
@@ -88,7 +104,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
         _appointment = _appointment.copyWith(status: AppointmentStatus.cancelled);
         _processing = false;
       });
-      _showSnackBar('Appointment declined', Icons.cancel, Colors.red);
+      _showSnackBar('Appointment declined', Icons.cancel, const Color(0xFFB45309));
     }
   }
 
@@ -97,14 +113,14 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Start Consultation', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('This will mark the appointment as completed and allow you to write clinical notes.', style: TextStyle(fontSize: 14)),
+        title: const Text('Start Consultation', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold)),
+        content: const Text('This will mark the appointment as completed and allow you to write clinical notes.', style: TextStyle(fontFamily: 'Figtree', fontSize: 14)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: TextStyle(fontFamily: 'Figtree', color: Colors.grey.shade600))),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            child: const Text('Confirm', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: const Text('Confirm', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold, color: Colors.white)),
           ),
         ],
       ),
@@ -120,7 +136,54 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
         _processing = false;
         _loadingRecord = false;
       });
-      _showSnackBar('Consultation started — write your notes below', Icons.edit_note, AppColors.primary);
+      _showSnackBar('Consultation started — write your notes below', Icons.edit_note, const Color(0xFF7C3AED));
+    }
+  }
+
+  Future<void> _handleStartVideoCall() async {
+    setState(() => _processing = true);
+    final vc = context.read<VetController>();
+    final response = await vc.startVideoCall(_appointment.appointmentId);
+
+    if (response == null) {
+      if (mounted) {
+        setState(() => _processing = false);
+        _showSnackBar('Failed to start video call. Please try again.', Icons.error, const Color(0xFFB45309));
+      }
+      return;
+    }
+
+    if (mounted) {
+      setState(() => _processing = false);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VideoCallView(
+            appId: response['app_id'],
+            token: response['token'],
+            channelName: response['channel'],
+            uid: response['uid'] ?? 1,
+            remoteName: _appointment.petName,
+            onCallEnded: () async {
+              try {
+                await vc.endVideoCall(_appointment.appointmentId);
+              } catch (e) {
+                debugPrint('Error ending call: $e');
+              }
+              if (mounted) {
+                setState(() {
+                  _appointment = _appointment.copyWith(
+                    status: AppointmentStatus.completed,
+                    videoCallStatus: 'ended',
+                  );
+                  _loadingRecord = false;
+                });
+                _showSnackBar('Video call ended — write your clinical notes below', Icons.edit_note, const Color(0xFF7C3AED));
+              }
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -136,6 +199,10 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       doctorNotes: _doctorNotesCtrl.text.trim(),
       medicationsPrescribed: _medications,
       followUpInstructions: _followUpCtrl.text.trim(),
+      startRecoveryPlan: _startRecoveryPlan,
+      recoveryDurationDays: int.tryParse(_recoveryDurationCtrl.text.trim()) ?? 7,
+      recoveryInstructions: _recoveryInstructionsCtrl.text.trim(),
+      administeredVaccines: _administeredVaccines,
     );
 
     if (mounted) {
@@ -147,9 +214,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
         }
       });
       if (record != null) {
-        _showSnackBar('Clinical notes saved successfully', Icons.check_circle, Colors.green);
+        _showSnackBar('Clinical notes saved successfully', Icons.check_circle, const Color(0xFF15803D));
       } else {
-        _showSnackBar('Failed to save notes. Please try again.', Icons.error, Colors.red);
+        _showSnackBar('Failed to save notes. Please try again.', Icons.error, const Color(0xFFB45309));
       }
     }
   }
@@ -159,7 +226,7 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       content: Row(children: [
         Icon(icon, color: Colors.white, size: 18),
         const SizedBox(width: 10),
-        Expanded(child: Text(message, style: const TextStyle(fontWeight: FontWeight.w600))),
+        Expanded(child: Text(message, style: const TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600))),
       ]),
       backgroundColor: color,
       behavior: SnackBarBehavior.floating,
@@ -171,22 +238,37 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightSurface,
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildStatusBanner(),
-                  const SizedBox(height: 20),
-                  _buildInfoCard(),
-                  const SizedBox(height: 20),
-                  _buildActionSection(),
-                ],
+      backgroundColor: const Color(0xFF7C3AED),
+      body: Column(
+        children: [
+          _buildHeroHeader(context),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF7F5FF),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(28),
+                  topRight: Radius.circular(28),
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildChipsRow(),
+                      const SizedBox(height: 14),
+                      _buildInfoCard(),
+                      const SizedBox(height: 14),
+                      _buildActionSection(),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -195,87 +277,291 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
     );
   }
 
-  Widget _buildAppBar() {
-    return SliverAppBar(
-      expandedHeight: 180,
-      pinned: true,
-      backgroundColor: AppColors.primary,
-      iconTheme: const IconThemeData(color: AppColors.darkText),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: const BoxDecoration(
+  Widget _buildHeroHeader(BuildContext context) {
+    final vc = context.read<VetController>();
+    final fallbackPet = vc.getPetById(_appointment.petId);
+    final imgUrl = (_appointment.petProfileUrl != null && _appointment.petProfileUrl!.isNotEmpty)
+        ? _appointment.petProfileUrl
+        : fallbackPet?.profileImageUrl;
+
+    String badgeText = '';
+    Color badgeDotColor = Colors.transparent;
+    if (_appointment.status == AppointmentStatus.confirmed) {
+      badgeDotColor = const Color(0xFFA7F3D0);
+      badgeText = 'Confirmed · Ready for consultation';
+    } else if (_appointment.status == AppointmentStatus.pending) {
+      badgeDotColor = const Color(0xFFFDE68A);
+      badgeText = 'Pending · Awaiting confirmation';
+    } else if (_appointment.status == AppointmentStatus.completed) {
+      badgeDotColor = const Color(0xFFBBF7D0);
+      badgeText = 'Completed';
+    } else if (_appointment.status == AppointmentStatus.cancelled) {
+      badgeDotColor = const Color(0xFFFECACA);
+      badgeText = 'Cancelled';
+    }
+
+    return Stack(
+      children: [
+        // Blobs
+        Positioned(
+          top: -40,
+          left: -40,
+          child: Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.4),
             ),
-          child: SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 36),
+          ),
+        ),
+        Positioned(
+          bottom: -20,
+          right: -20,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF4C1D95).withValues(alpha: 0.3),
+            ),
+          ),
+        ),
+        SafeArea(
+          bottom: false,
+          child: SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 44, 20, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Avatar
                 Container(
-                  width: 64, height: 64,
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12)),
-                  child: const Center(child: Text('🐾', style: TextStyle(fontSize: 32))),
+                  width: 76,
+                  height: 76,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: imgUrl != null && imgUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imgUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => const SizedBox(),
+                          errorWidget: (_, __, ___) => Center(
+                            child: Text(
+                              vc.getPetEmoji(fallbackPet?.species ?? ''),
+                              style: const TextStyle(fontSize: 42),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            vc.getPetEmoji(fallbackPet?.species ?? ''),
+                            style: const TextStyle(fontSize: 42),
+                          ),
+                        ),
                 ),
-                const SizedBox(height: 10),
-                Text(_appointment.petName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)),
-                Text('Appointment Details', style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.8))),
+                Text(
+                  _appointment.petName,
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 14, top: 3),
+                  child: Text(
+                    'Owner: ${_appointment.ownerName ?? 'Unknown'} · Appointment Details',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: badgeDotColor,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        badgeText,
+                        style: const TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
         ),
-      ),
+        ),
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 44,
+          left: 16,
+          child: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.arrow_back, color: Colors.white, size: 16),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildStatusBanner() {
-    final statusConfig = _getStatusConfig(_appointment.status);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: statusConfig.bgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusConfig.borderColor),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: statusConfig.iconBg, borderRadius: BorderRadius.circular(12)),
-            child: Icon(statusConfig.icon, color: statusConfig.iconColor, size: 20),
+  Widget _buildChipsRow() {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: _appointment.isVirtual ? const Color(0xFF0369A1) : const Color(0xFF534AB7),
+            borderRadius: BorderRadius.circular(8),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _appointment.isVirtual ? Icons.videocam : Icons.local_hospital,
+                color: Colors.white,
+                size: 14,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                _appointment.isVirtual ? 'Virtual' : 'In-Person',
+                style: const TextStyle(
+                  fontFamily: 'Figtree',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        if (_appointment.amount != null && _appointment.amount! > 0)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF15803D),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(statusConfig.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: statusConfig.textColor)),
-                const SizedBox(height: 2),
-                Text(statusConfig.subtitle, style: TextStyle(fontSize: 12, color: statusConfig.textColor.withValues(alpha: 0.7))),
+                const Icon(
+                  Icons.payments_outlined,
+                  color: Colors.white,
+                  size: 14,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '\$${_appointment.amount!.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
   Widget _buildInfoCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDE8F8)),
       ),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
+        children: [
+          _buildInfoRow(Icons.pets, 'Pet', _appointment.petName),
+          const Divider(color: Color(0xFFEDE8F8), height: 1),
+          _buildInfoRow(Icons.calendar_today_outlined, 'Date', DateFormat('MMM d, yyyy').format(_appointment.appointmentDate)),
+          const Divider(color: Color(0xFFEDE8F8), height: 1),
+          _buildInfoRow(Icons.access_time, 'Time', DateFormat('h:mm a').format(_appointment.timeSlot)),
+          const Divider(color: Color(0xFFEDE8F8), height: 1),
+          _buildInfoRow(Icons.storefront_outlined, 'Clinic', _appointment.clinicName.isNotEmpty ? _appointment.clinicName : 'N/A'),
+          const Divider(color: Color(0xFFEDE8F8), height: 1),
+          _buildInfoRow(Icons.description_outlined, 'Reason', _appointment.reason),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Appointment Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
-          const SizedBox(height: 16),
-          _DetailRow(icon: Icons.pets, label: 'Pet', value: _appointment.petName),
-          _DetailRow(icon: Icons.calendar_today, label: 'Date', value: DateFormat('EEEE, MMMM d, yyyy').format(_appointment.appointmentDate)),
-          _DetailRow(icon: Icons.access_time, label: 'Time', value: DateFormat('h:mm a').format(_appointment.timeSlot)),
-          _DetailRow(icon: Icons.local_hospital, label: 'Clinic', value: _appointment.clinicName.isNotEmpty ? _appointment.clinicName : 'N/A'),
-          _DetailRow(icon: Icons.description_outlined, label: 'Reason', value: _appointment.reason, isLast: true),
+          Icon(icon, color: const Color(0xFF7C3AED), size: 16),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 56,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Figtree',
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF9B8CB8),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontFamily: 'Figtree',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A0F2E),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -296,37 +582,52 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
 
   Widget _buildPendingActions() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        SizedBox(height: 14),
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
+              child: TextButton(
                 onPressed: _processing ? null : _handleDecline,
-                icon: const Icon(Icons.close, size: 18),
-                label: const Text('Decline', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red, side: const BorderSide(color: Colors.red),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: const Text(
+                  'Reject',
+                  style: TextStyle(
+                    fontFamily: 'Figtree',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF9B8CB8),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 8),
             Expanded(
-              child: ElevatedButton.icon(
+              child: ElevatedButton(
                 onPressed: _processing ? null : _handleApprove,
-                icon: _processing
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.check, size: 18, color: Colors.white),
-                label: const Text('Approve', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  backgroundColor: const Color(0xFF7C3AED),
                   padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
                 ),
+                child: _processing
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Accept',
+                        style: TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -336,35 +637,102 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
   }
 
   Widget _buildConfirmedActions() {
+    final isVirtual = _appointment.isVirtual;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        SizedBox(height: 14),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _processing ? null : _handleStartConsultation,
-            icon: _processing
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
-            label: const Text('Start Consultation', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.healthGreen, elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF15803D),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Ready to begin',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Ensure you are prepared for the consultation.',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.75),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 10),
-        Center(child: Text('Marks appointment as completed and unlocks clinical notes', style: TextStyle(fontSize: 12, color: Colors.grey.shade500))),
+        const SizedBox(height: 14),
+        if (isVirtual) ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _processing ? null : _handleStartVideoCall,
+              icon: _processing
+                  ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.videocam, color: Colors.white, size: 15),
+              label: const Text('Start Video Call', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, color: Colors.white, fontSize: 14)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 15),
+              ),
+            ),
+          ),
+        ] else ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _processing ? null : _handleStartConsultation,
+              icon: _processing
+                  ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.play_arrow, color: Colors.white, size: 15),
+              label: const Text('Start Consultation', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, color: Colors.white, fontSize: 14)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 15),
+              ),
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 6),
+            child: const Text(
+              'Marks appointment as completed and unlocks clinical notes',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Figtree',
+                fontSize: 11,
+                color: Color(0xFFB0A4C8),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 
   Widget _buildCompletedSection() {
     if (_loadingRecord) {
-      return Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: AppColors.primary)));
+      return const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: Color(0xFF7C3AED))));
     }
     if (_notesSubmitted && _existingRecord != null) {
       return _buildReadOnlyNotes(_existingRecord!);
@@ -376,8 +744,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDE8F8)),
       ),
       child: Form(
         key: _formKey,
@@ -386,19 +755,23 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
           children: [
             Row(
               children: [
-                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)), child: Icon(Icons.edit_note, color: AppColors.primary, size: 20)),
-                SizedBox(width: 12),
-                Text('Clinical Notes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                const Icon(Icons.edit_note, color: Color(0xFF7C3AED), size: 16),
+                const SizedBox(width: 12),
+                const Text('Clinical Notes', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1A0F2E))),
               ],
             ),
             const SizedBox(height: 6),
-            Text('Complete the consultation notes for this visit', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+            Text('Complete the consultation notes for this visit', style: TextStyle(fontFamily: 'Figtree', fontSize: 12, color: Colors.grey.shade500)),
             const SizedBox(height: 20),
             _buildFormField(controller: _diagnosisCtrl, label: 'Diagnosis', hint: 'e.g. Upper respiratory infection', icon: Icons.medical_information_outlined, validator: (v) => (v == null || v.trim().isEmpty) ? 'Diagnosis is required' : null),
             const SizedBox(height: 16),
             _buildFormField(controller: _doctorNotesCtrl, label: "Doctor's Notes", hint: 'Detailed clinical observations...', icon: Icons.notes_outlined, maxLines: 4, validator: (v) => (v == null || v.trim().isEmpty) ? 'Notes are required' : null),
             const SizedBox(height: 16),
             _buildMedicationsSection(),
+            const SizedBox(height: 16),
+            _buildVaccinesSection(),
+            const SizedBox(height: 16),
+            _buildRecoveryPlanSection(),
             const SizedBox(height: 16),
             _buildFormField(controller: _followUpCtrl, label: 'Follow-up Instructions', hint: 'e.g. Return in 2 weeks for recheck', icon: Icons.event_repeat),
             const SizedBox(height: 24),
@@ -408,12 +781,13 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
                 onPressed: _processing ? null : _handleSubmitNotes,
                 icon: _processing
                     ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.save_outlined, color: Colors.white),
-                label: const Text('Submit Clinical Notes', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15)),
+                    : const Icon(Icons.save_outlined, color: Colors.white, size: 16),
+                label: const Text('Submit Clinical Notes', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, color: Colors.white, fontSize: 14)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: const Color(0xFF7C3AED),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
               ),
             ),
@@ -436,9 +810,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       children: [
         Row(
           children: [
-            Icon(icon, size: 16, color: AppColors.primary),
-            SizedBox(width: 6),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black)),
+            Icon(icon, size: 14, color: const Color(0xFF7C3AED)),
+            const SizedBox(width: 6),
+            Text(label, style: const TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF9B8CB8))),
           ],
         ),
         const SizedBox(height: 8),
@@ -446,14 +820,15 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
           controller: controller,
           maxLines: maxLines,
           validator: validator,
-          style: const TextStyle(fontSize: 14),
+          style: const TextStyle(fontFamily: 'Figtree', fontSize: 13, color: Color(0xFF1A0F2E)),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
-            filled: true, fillColor: AppColors.lightSurface,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.grey.shade200)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+            hintStyle: const TextStyle(fontFamily: 'Figtree', fontSize: 13, color: Color(0xFFB0A4C8)),
+            filled: true,
+            fillColor: const Color(0xFFF7F5FF),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEDE8F8))),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEDE8F8))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
@@ -465,17 +840,18 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDE8F8)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.healthGreenBg, borderRadius: BorderRadius.circular(12)), child: Icon(Icons.check_circle, color: AppColors.healthGreen, size: 20)),
-              SizedBox(width: 12),
-              const Expanded(child: Text('Clinical Notes Submitted', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.healthGreen))),
+              const Icon(Icons.check_circle, color: Color(0xFF15803D), size: 16),
+              const SizedBox(width: 12),
+              const Expanded(child: Text('Clinical Notes Submitted', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF15803D)))),
             ],
           ),
           const SizedBox(height: 18),
@@ -491,15 +867,165 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
     );
   }
 
+  Widget _buildRecoveryPlanSection() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F5FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFEDE8F8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Checkbox(
+                value: _startRecoveryPlan,
+                onChanged: (v) {
+                  setState(() {
+                    _startRecoveryPlan = v ?? false;
+                  });
+                },
+                activeColor: const Color(0xFF7C3AED),
+              ),
+              Expanded(
+                child: const Text('Start Recovery Plan (Targeted Health Journal)', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, color: Color(0xFF1A0F2E))),
+              ),
+            ],
+          ),
+          if (_startRecoveryPlan) ...[
+            const SizedBox(height: 8),
+            _buildFormField(
+              controller: _recoveryDurationCtrl,
+              label: 'Duration (Days)',
+              hint: 'e.g. 7',
+              icon: Icons.timer,
+            ),
+            const SizedBox(height: 12),
+            _buildFormField(
+              controller: _recoveryInstructionsCtrl,
+              label: 'Recovery Instructions',
+              hint: 'Instructions for the pet owner during recovery...',
+              icon: Icons.healing,
+              maxLines: 3,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVaccinesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.vaccines_outlined, size: 14, color: Color(0xFF7C3AED)),
+            const SizedBox(width: 6),
+            const Text('Vaccines Administered', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF9B8CB8))),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ..._administeredVaccines.map((v) => Chip(
+                  label: Text(v['vaccine_name'], style: const TextStyle(fontFamily: 'Figtree', fontSize: 12, color: Color(0xFF166534), fontWeight: FontWeight.w500)),
+                  backgroundColor: const Color(0xFFF0FDF4),
+                  side: const BorderSide(color: Color(0xFFBBF7D0)),
+                  deleteIcon: const Icon(Icons.close, size: 14, color: Color(0xFF166534)),
+                  onDeleted: () {
+                    setState(() {
+                      _administeredVaccines.remove(v);
+                    });
+                  },
+                )),
+            ActionChip(
+              label: const Text('Add Vaccine', style: TextStyle(fontFamily: 'Figtree', fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600)),
+              backgroundColor: const Color(0xFF16A34A),
+              side: BorderSide.none,
+              avatar: const Icon(Icons.add, size: 14, color: Colors.white),
+              onPressed: () => _showAddVaccineDialog(),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _showAddVaccineDialog() {
+    final nameCtrl = TextEditingController();
+    bool isCore = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(builder: (context, setStateDialog) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Add Vaccine', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1A0F2E))),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Vaccine Name (e.g. Rabies)',
+                    filled: true,
+                    fillColor: const Color(0xFFF7F5FF),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: isCore,
+                      onChanged: (v) => setStateDialog(() => isCore = v ?? false),
+                      activeColor: const Color(0xFF16A34A),
+                    ),
+                    const Text('Is Core Vaccine?'),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  if (nameCtrl.text.trim().isNotEmpty) {
+                    setState(() {
+                      _administeredVaccines.add({
+                        'vaccine_name': nameCtrl.text.trim(),
+                        'is_core': isCore,
+                        'date_administered': DateTime.now().toIso8601String(),
+                      });
+                    });
+                  }
+                  Navigator.pop(ctx);
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF16A34A)),
+                child: const Text('Add', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
   Widget _buildMedicationsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(Icons.medication_outlined, size: 16, color: AppColors.primary),
-            SizedBox(width: 6),
-            Text('Medications Prescribed', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black)),
+            const Icon(Icons.medication_outlined, size: 14, color: Color(0xFF7C3AED)),
+            const SizedBox(width: 6),
+            const Text('Medications Prescribed', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF9B8CB8))),
           ],
         ),
         const SizedBox(height: 8),
@@ -508,9 +1034,10 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
           runSpacing: 8,
           children: [
             ..._medications.map((med) => Chip(
-                  label: Text(med, style: TextStyle(fontSize: 12, color: AppColors.primary)),
-                  backgroundColor: AppColors.chipBg,
-                  deleteIcon: Icon(Icons.close, size: 14, color: AppColors.primary),
+                  label: Text(med, style: const TextStyle(fontFamily: 'Figtree', fontSize: 12, color: Color(0xFF7C3AED), fontWeight: FontWeight.w500)),
+                  backgroundColor: const Color(0xFFF7F5FF),
+                  side: const BorderSide(color: Color(0xFFEDE8F8)),
+                  deleteIcon: const Icon(Icons.close, size: 14, color: Color(0xFF7C3AED)),
                   onDeleted: () {
                     setState(() {
                       _medications.remove(med);
@@ -518,8 +1045,9 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
                   },
                 )),
             ActionChip(
-              label: Text('Add Medication', style: TextStyle(fontSize: 12, color: Colors.white)),
-              backgroundColor: AppColors.primary,
+              label: const Text('Add Medication', style: TextStyle(fontFamily: 'Figtree', fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600)),
+              backgroundColor: const Color(0xFF7C3AED),
+              side: BorderSide.none,
               avatar: const Icon(Icons.add, size: 14, color: Colors.white),
               onPressed: () => _showAddMedicationDialog(),
             ),
@@ -534,22 +1062,25 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Text('Add Medication', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Add Medication', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1A0F2E))),
           content: TextField(
             controller: _medicationsCtrl,
+            style: const TextStyle(fontFamily: 'Figtree', fontSize: 13, color: Color(0xFF1A0F2E)),
             decoration: InputDecoration(
               hintText: 'e.g. Amoxicillin 250mg',
-              hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+              hintStyle: const TextStyle(fontFamily: 'Figtree', fontSize: 13, color: Color(0xFFB0A4C8)),
               filled: true,
-              fillColor: AppColors.lightSurface,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+              fillColor: const Color(0xFFF7F5FF),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEDE8F8))),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEDE8F8))),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2)),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+              child: const Text('Cancel', style: TextStyle(fontFamily: 'Figtree', color: Color(0xFF9B8CB8), fontWeight: FontWeight.w500)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -561,78 +1092,12 @@ class _VetAppointmentDetailsViewState extends State<VetAppointmentDetailsView> {
                 }
                 Navigator.pop(ctx);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-              child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), elevation: 0),
+              child: const Text('Add', style: TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ],
         );
       },
-    );
-  }
-
-  _StatusConfig _getStatusConfig(AppointmentStatus status) {
-    switch (status) {
-      case AppointmentStatus.pending:
-        return _StatusConfig(
-          title: 'Pending Approval', subtitle: 'This appointment is waiting for your response',
-          icon: Icons.pending_actions, bgColor: AppColors.pendingBg, borderColor: const Color(0xFFFDE68A),
-          iconBg: AppColors.pendingBg, iconColor: AppColors.pendingText, textColor: AppColors.pendingText,
-        );
-      case AppointmentStatus.confirmed:
-        return _StatusConfig(
-          title: 'Confirmed', subtitle: 'Ready for consultation',
-          icon: Icons.event_available, bgColor: AppColors.confirmedBg, borderColor: const Color(0xFFBFDBFE),
-          iconBg: const Color(0xFFDBEAFE), iconColor: AppColors.confirmedText, textColor: AppColors.confirmedText,
-        );
-      case AppointmentStatus.completed:
-        return _StatusConfig(
-          title: 'Completed', subtitle: 'Consultation finished',
-          icon: Icons.check_circle_outline, bgColor: AppColors.completedBg, borderColor: const Color(0xFFBBF7D0),
-          iconBg: AppColors.healthGreenBg, iconColor: AppColors.healthGreen, textColor: AppColors.completedText,
-        );
-      case AppointmentStatus.cancelled:
-        return _StatusConfig(
-          title: 'Cancelled', subtitle: 'This appointment was declined',
-          icon: Icons.cancel_outlined, bgColor: AppColors.cancelledBg, borderColor: const Color(0xFFFECACA),
-          iconBg: const Color(0xFFFEE2E2), iconColor: Colors.red, textColor: AppColors.cancelledText,
-        );
-    }
-  }
-}
-
-class _StatusConfig {
-  final String title, subtitle;
-  final IconData icon;
-  final Color bgColor, borderColor, iconBg, iconColor, textColor;
-  const _StatusConfig({required this.title, required this.subtitle, required this.icon, required this.bgColor, required this.borderColor, required this.iconBg, required this.iconColor, required this.textColor});
-}
-
-class _DetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool isLast;
-  const _DetailRow({required this.icon, required this.label, required this.value, this.isLast = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 16, color: AppColors.primary),
-              const SizedBox(width: 10),
-              SizedBox(width: 60, child: Text(label, style: TextStyle(fontSize: 13, color: Colors.grey.shade500))),
-              const SizedBox(width: 8),
-              Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black))),
-            ],
-          ),
-        ),
-        if (!isLast) Divider(height: 1, color: Colors.grey.shade100),
-      ],
     );
   }
 }
@@ -652,17 +1117,17 @@ class _ReadOnlyField extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: AppColors.primary),
-              SizedBox(width: 6),
-              Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey.shade500)),
+              Icon(icon, size: 14, color: const Color(0xFF7C3AED)),
+              const SizedBox(width: 6),
+              Text(label, style: const TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600, fontSize: 12, color: Color(0xFF9B8CB8))),
             ],
           ),
           const SizedBox(height: 6),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: AppColors.lightSurface, borderRadius: BorderRadius.circular(12)),
-            child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black)),
+            decoration: BoxDecoration(color: const Color(0xFFF7F5FF), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFEDE8F8))),
+            child: Text(value, style: const TextStyle(fontFamily: 'Figtree', fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xFF1A0F2E))),
           ),
         ],
       ),

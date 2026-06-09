@@ -13,6 +13,7 @@ class AppointmentController extends ChangeNotifier {
   DateTime? _selectedDate;
   DateTime? _selectedTimeSlot;
   String _reason = 'General Consultation';
+  String _consultationType = 'in_person';
 
   List<Clinic> _clinics = [];
   List<Veterinarian> _vets = [];
@@ -24,6 +25,7 @@ class AppointmentController extends ChangeNotifier {
   DateTime? get selectedDate => _selectedDate;
   DateTime? get selectedTimeSlot => _selectedTimeSlot;
   String get reason => _reason;
+  String get consultationType => _consultationType;
   
   List<Clinic> get clinics => _clinics;
   List<Veterinarian> get vets => _vets;
@@ -201,6 +203,11 @@ class AppointmentController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setConsultationType(String type) {
+    _consultationType = type;
+    notifyListeners();
+  }
+
   /// Resets the booking form state.
   void resetBookingForm() {
     _selectedClinic = null;
@@ -208,6 +215,7 @@ class AppointmentController extends ChangeNotifier {
     _selectedDate = null;
     _selectedTimeSlot = null;
     _reason = 'General Consultation';
+    _consultationType = 'in_person';
     _vets = [];
     notifyListeners();
   }
@@ -232,6 +240,7 @@ class AppointmentController extends ChangeNotifier {
       appointmentDate: _selectedDate!,
       timeSlot: _selectedTimeSlot!,
       status: AppointmentStatus.pending,
+      consultationType: _consultationType,
     );
 
     final success = await createAppointment(appointment);
@@ -269,6 +278,7 @@ class AppointmentController extends ChangeNotifier {
           'reason': reason ?? _reason,
           'appointment_date': _selectedDate!.toIso8601String().split('T').join(' ').split('.')[0],
           'time_slot': _selectedTimeSlot!.toIso8601String().split('T').join(' ').split('.')[0],
+          'consultation_type': _consultationType,
         },
         token,
       );
@@ -310,6 +320,7 @@ class AppointmentController extends ChangeNotifier {
           'reason': reason ?? _reason,
           'appointment_date': _selectedDate!.toIso8601String().split('T').join(' ').split('.')[0],
           'time_slot': _selectedTimeSlot!.toIso8601String().split('T').join(' ').split('.')[0],
+          'consultation_type': _consultationType,
         },
         token,
       );
@@ -330,5 +341,83 @@ class AppointmentController extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
     return false;
+  }
+
+  // ── Video Call API ────────────────────────────────────────────────────────
+
+  /// Starts a video call for the given appointment (vet-only action).
+  Future<Map<String, dynamic>?> startVideoCall(String appointmentId) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.post(
+        '/appointments/$appointmentId/start-call',
+        {},
+        token,
+      );
+      // Update local state
+      final idx = _appointments.indexWhere((a) => a.appointmentId == appointmentId);
+      if (idx != -1) {
+        _appointments[idx] = _appointments[idx].copyWith(
+          videoCallStatus: 'active',
+          videoCallChannel: response['channel'],
+        );
+      }
+      notifyListeners();
+      return response;
+    } catch (e) {
+      print('Error starting video call: $e');
+      return null;
+    }
+  }
+
+  /// Gets the current call status for an appointment.
+  Future<Map<String, dynamic>?> getCallStatus(String appointmentId) async {
+    try {
+      final token = await _getToken();
+      final response = await _apiService.get(
+        '/appointments/$appointmentId/call-status',
+        token: token,
+      );
+      // Update local state if call is active
+      if (response['active'] == true) {
+        final idx = _appointments.indexWhere((a) => a.appointmentId == appointmentId);
+        if (idx != -1) {
+          _appointments[idx] = _appointments[idx].copyWith(
+            videoCallStatus: 'active',
+            videoCallChannel: response['channel'],
+          );
+          notifyListeners();
+        }
+      }
+      return response;
+    } catch (e) {
+      print('Error getting call status: $e');
+      return null;
+    }
+  }
+
+  /// Ends a video call for the given appointment.
+  Future<bool> endVideoCall(String appointmentId) async {
+    try {
+      final token = await _getToken();
+      await _apiService.post(
+        '/appointments/$appointmentId/end-call',
+        {},
+        token,
+      );
+      // Update local state
+      final idx = _appointments.indexWhere((a) => a.appointmentId == appointmentId);
+      if (idx != -1) {
+        _appointments[idx] = _appointments[idx].copyWith(
+          videoCallStatus: 'ended',
+          status: AppointmentStatus.completed,
+        );
+      }
+      notifyListeners();
+      return true;
+    } catch (e) {
+      print('Error ending video call: $e');
+      return false;
+    }
   }
 }

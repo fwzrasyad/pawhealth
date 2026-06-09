@@ -1,211 +1,440 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../utils/constants.dart';
-import 'package:image_picker/image_picker.dart';
-import '../../../services/ai_scanner_service.dart';
-import 'ai_results_view.dart';
+import 'package:provider/provider.dart';
+import '../../../controllers/smart_analyzer_controller.dart';
+import '../../../controllers/pet_controller.dart';
+import 'ai_loading_view.dart';
 
-class AIScannerView extends StatefulWidget {
-  const AIScannerView({super.key});
+class SmartAnalyzerIntroView extends StatelessWidget {
+  const SmartAnalyzerIntroView({super.key});
 
-  @override
-  State<AIScannerView> createState() => _AIScannerViewState();
-}
+  void _onPickImage(BuildContext context, ImagePickerSource source) async {
+    final controller = context.read<SmartAnalyzerController>();
+    final petCtrl = context.read<PetController>();
 
-class _AIScannerViewState extends State<AIScannerView> {
-  final AIScannerService _aiService = AIScannerService();
-  final ImagePicker _picker = ImagePicker();
-  
-  bool _isLoading = false;
-  bool _isModelLoaded = false;
-  String? _errorMessage;
-  
-  
-  
+    // Choose the selected pet, or fallback to the first available pet
+    final petId =
+        petCtrl.selectedPet?.petId ??
+        (petCtrl.pets.isNotEmpty ? petCtrl.pets.first.petId : 'default_pet');
 
-  @override
-  void initState() {
-    super.initState();
-    _loadModel();
-  }
+    controller.resetScan();
+    final picked = await controller.pickImage(source);
+    if (picked && context.mounted) {
+      // Kick off analysis before pushing the route to ensure state is ready
+      final analysisFuture = controller.analyzeImage(petId: petId);
 
-  Future<void> _loadModel() async {
-    await _aiService.loadModel();
-    setState(() {
-      _isModelLoaded = true;
-    });
-  }
-
-  @override
-  void dispose() {
-    _aiService.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    if (!_isModelLoaded) return;
-    
-    setState(() {
-      _errorMessage = null;
-    });
-
-    final pickedFile = await _picker.pickImage(source: source);
-    if (pickedFile != null) {
-      _analyzeImage(File(pickedFile.path));
-    }
-  }
-
-  Future<void> _analyzeImage(File imageFile) async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    final result = await _aiService.analyzeImage(imageFile);
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (result != null) {
-      double confidence = result['confidence'];
-      String label = result['label'];
-
-      if (confidence < 0.95) {
-        setState(() {
-          _errorMessage = "Scan Inconclusive (Confidence: ${(confidence * 100).toStringAsFixed(1)}%). Please ensure the photo is well-lit, in focus, and clearly shows the affected area, then try again.";
-        });
-      } else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AIResultsView(
-              imageFile: imageFile,
-              label: label,
-              confidence: confidence,
-            ),
-          ),
-        );
-      }
-    } else {
-      setState(() {
-        _errorMessage = "Failed to analyze image. Please try again.";
-      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AnalyzingLoadingView()),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightSurface,
-      appBar: AppDecor.tabAppBar(title: 'AI Symptom Analyzer'),
-      body: _isLoading 
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(color: AppColors.primary),
-                SizedBox(height: 16),
-                Text(
-                  "Analyzing scan...",
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
-                )
-              ],
-            ),
-          )
-        : Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.document_scanner_outlined, size: 80, color: AppColors.primary),
-                SizedBox(height: 24),
-                const Text(
-                  "Scan your pet's affected area",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+      backgroundColor: const Color(0xFF7C3AED),
+      body: Column(
+        children: [
+          _buildHero(context),
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Color(0xFFF7F5FF),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  "Our AI model will analyze the image to detect common skin conditions and parasites.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+              ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
                 ),
-                const SizedBox(height: 40),
-                
-                if (_errorMessage != null)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 24),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red.shade200),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.error_outline, color: Colors.red.shade700),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: TextStyle(
-                              color: Colors.red.shade900,
-                              fontSize: 13,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                  child: Column(
+                    children: [
+                      // Scan zone card
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4C1D95),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        clipBehavior: Clip.hardEdge,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              top: -40,
+                              right: -40,
+                              child: Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: -30,
+                              left: -20,
+                              child: Container(
+                                width: 90,
+                                height: 90,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF6D28D9).withValues(alpha: 0.25),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 28,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 72,
+                                    height: 72,
+                                    margin: const EdgeInsets.only(bottom: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(18),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: 0.25),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.document_scanner_outlined,
+                                        color: Colors.white.withValues(alpha: 0.9),
+                                        size: 36,
+                                      ),
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Ready to scan',
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    "Take or upload a clear photo of your cat's affected area for analysis",
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontSize: 12,
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      height: 1.5,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Buttons row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () =>
+                                  _onPickImage(context, ImagePickerSource.camera),
+                              icon: const Icon(
+                                Icons.camera_alt_outlined,
+                                color: Colors.white,
+                                size: 17,
+                              ),
+                              label: const Text(
+                                'Camera',
+                                style: TextStyle(
+                                  fontFamily: 'Figtree',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF7C3AED),
+                                padding: const EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                elevation: 0,
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () =>
+                                  _onPickImage(context, ImagePickerSource.gallery),
+                              icon: const Icon(
+                                Icons.photo_outlined,
+                                color: Color(0xFF7C3AED),
+                                size: 17,
+                              ),
+                              label: const Text(
+                                'Gallery',
+                                style: TextStyle(
+                                  fontFamily: 'Figtree',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF7C3AED),
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 15),
+                                side: const BorderSide(
+                                  color: Color(0xFFEDE8F8),
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Detectable conditions card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFEDE8F8)),
                         ),
-                      ],
-                    ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.biotech_outlined,
+                                  color: Color(0xFF7C3AED),
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Detectable conditions',
+                                  style: TextStyle(
+                                    fontFamily: 'Figtree',
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF1A0F2E),
+                                  ),
+                                ),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDB2777),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('🐱', style: TextStyle(fontSize: 11)),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Cats only',
+                                        style: TextStyle(
+                                          fontFamily: 'Figtree',
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                "Ear mites",
+                                "Feline acne",
+                                "Fleas",
+                                "Healthy cat",
+                                "Ringworm",
+                                "Scabies",
+                              ]
+                                  .map(
+                                    (chipText) => Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 9,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF7C3AED),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        chipText,
+                                        style: const TextStyle(
+                                          fontFamily: 'Figtree',
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Disclaimer card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFFDE68A)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Color(0xFFD97706),
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Preliminary scan only',
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF92400E),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  const Text(
+                                    'This scan provides an early indication only and is not a substitute for a professional veterinary diagnosis. Always consult a licensed vet for medical advice.',
+                                    style: TextStyle(
+                                      fontFamily: 'Figtree',
+                                      fontSize: 11,
+                                      color: Color(0xFFB45309),
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _isModelLoaded ? () => _pickImage(ImageSource.camera) : null,
-                        icon: const Icon(Icons.camera_alt, color: Colors.white),
-                        label: const Text("Camera", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _isModelLoaded ? () => _pickImage(ImageSource.gallery) : null,
-                        icon: Icon(Icons.photo_library, color: AppColors.primary),
-                        label: const Text("Gallery", style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.chipBg,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
-                const SizedBox(height: 20),
-                if (!_isModelLoaded)
-                  const Text(
-                    "Loading AI Model...",
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                  )
-              ],
+              ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHero(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned(
+          top: -40,
+          left: -40,
+          child: Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.4),
+            ),
+          ),
+        ),
+        Positioned(
+          top: -20,
+          right: -20,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF4C1D95).withValues(alpha: 0.3),
+            ),
+          ),
+        ),
+        SafeArea(
+          bottom: false,
+          child: SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'AI Analyzer',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Scan your pet for early health detection',
+                    style: TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../controllers/vet_controller.dart';
 import '../../../models/appointment_model.dart';
 import 'vet_appointment_details_view.dart';
 
 class ManageAppointmentsView extends StatefulWidget {
-  // When embedded=true it's a tab inside VetDashboardView (no AppBar back button needed)
   final bool embeddedMode;
   const ManageAppointmentsView({super.key, this.embeddedMode = false});
 
@@ -16,7 +15,6 @@ class ManageAppointmentsView extends StatefulWidget {
 }
 
 class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
-  
   int _selectedStatusIndex = 0; // 0: Pending, 1: Confirmed, 2: Completed
 
   @override
@@ -27,74 +25,122 @@ class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
     final completed = vc.completedAppointments;
 
     return Scaffold(
-      backgroundColor: AppColors.lightSurface,
-      appBar: widget.embeddedMode
-          ? null
-          : AppBar(
-              title: Text('All Appointments', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              iconTheme: const IconThemeData(color: Colors.black),
-            ),
+      backgroundColor: const Color(0xFF7C3AED),
       body: SafeArea(
+        bottom: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.embeddedMode)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('All Appointments', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black)),
-                    SizedBox(height: 4),
-                    Text('View pending, confirmed, and completed appointments', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
-                  ],
+            // Hero Header
+            Stack(
+              children: [
+                // Blobs
+                Positioned(
+                  top: -40,
+                  left: -40,
+                  child: Container(
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF6D28D9).withValues(alpha: 0.4),
+                    ),
+                  ),
                 ),
-              ),
-
-            // Status Filter Tabs
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
-              child: Row(
-                children: [
-                  _StatusTab(
-                    label: 'Pending',
-                    count: pending.length,
-                    isSelected: _selectedStatusIndex == 0,
-                    badgeColor: AppColors.pendingBg,
-                    textColor: AppColors.pendingText,
-                    onTap: () => setState(() => _selectedStatusIndex = 0),
+                Positioned(
+                  bottom: -20,
+                  right: -20,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF4C1D95).withValues(alpha: 0.3),
+                    ),
                   ),
-                  const SizedBox(width: 12),
-                  _StatusTab(
-                    label: 'Confirmed',
-                    count: confirmed.length,
-                    isSelected: _selectedStatusIndex == 1,
-                    badgeColor: AppColors.confirmedBg,
-                    textColor: AppColors.confirmedText,
-                    onTap: () => setState(() => _selectedStatusIndex = 1),
+                ),
+                // Content
+                SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 44, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                        'All Appointments',
+                        style: TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 3, bottom: 20),
+                        child: Text(
+                          'Manage your upcoming bookings',
+                          style: TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ),
+                      // Tab Bar
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            _StatusTab(
+                              label: 'Pending',
+                              count: pending.length,
+                              isSelected: _selectedStatusIndex == 0,
+                              onTap: () => setState(() => _selectedStatusIndex = 0),
+                            ),
+                            _StatusTab(
+                              label: 'Confirmed',
+                              count: confirmed.length,
+                              isSelected: _selectedStatusIndex == 1,
+                              onTap: () => setState(() => _selectedStatusIndex = 1),
+                            ),
+                            _StatusTab(
+                              label: 'Completed',
+                              count: completed.length,
+                              isSelected: _selectedStatusIndex == 2,
+                              onTap: () => setState(() => _selectedStatusIndex = 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  _StatusTab(
-                    label: 'Completed',
-                    count: completed.length,
-                    isSelected: _selectedStatusIndex == 2,
-                    badgeColor: AppColors.completedBg,
-                    textColor: AppColors.completedText,
-                    onTap: () => setState(() => _selectedStatusIndex = 2),
-                  ),
-                ],
-              ),
+                ),
+                ),
+              ],
             ),
-
-            // Appointments List
+            // White Card Body
             Expanded(
-              child: _selectedStatusIndex == 0
-                  ? _buildAppointmentsList(pending, 'No pending appointments')
-                  : _selectedStatusIndex == 1
-                      ? _buildAppointmentsList(confirmed, 'No confirmed appointments')
-                      : _buildAppointmentsList(completed, 'No completed appointments'),
+              child: Container(
+                margin: const EdgeInsets.only(top: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                ),
+                child: _selectedStatusIndex == 0
+                    ? _buildAppointmentsList(pending, 'No pending appointments')
+                    : _selectedStatusIndex == 1
+                        ? _buildAppointmentsList(confirmed, 'No confirmed appointments')
+                        : _buildAppointmentsList(completed, 'No completed appointments'),
+              ),
             ),
           ],
         ),
@@ -103,28 +149,25 @@ class _ManageAppointmentsViewState extends State<ManageAppointmentsView> {
   }
 
   Widget _buildAppointmentsList(List<Appointment> appointments, String emptyMessage) {
-    return appointments.isEmpty
-        ? Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(12)),
-                  child: Icon(Icons.check_circle_outline, size: 48, color: AppColors.primary),
-                ),
-                const SizedBox(height: 16),
-                const Text('All caught up!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black)),
-                const SizedBox(height: 6),
-                Text(emptyMessage, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-              ],
-            ),
-          )
-        : ListView.builder(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-            itemCount: appointments.length,
-            itemBuilder: (ctx, i) => _AppointmentCard(appointment: appointments[i]),
-          );
+    if (appointments.isEmpty) {
+      return Center(
+        child: Text(
+          emptyMessage,
+          style: const TextStyle(
+            fontFamily: 'Figtree',
+            color: Color(0xFF9B8CB8),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+    return ListView.separated(
+      padding: EdgeInsets.zero,
+      itemCount: appointments.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (ctx, i) => _AppointmentCard(appointment: appointments[i]),
+    );
   }
 }
 
@@ -132,16 +175,12 @@ class _StatusTab extends StatelessWidget {
   final String label;
   final int count;
   final bool isSelected;
-  final Color badgeColor;
-  final Color textColor;
   final VoidCallback onTap;
 
   const _StatusTab({
     required this.label,
     required this.count,
     required this.isSelected,
-    required this.badgeColor,
-    required this.textColor,
     required this.onTap,
   });
 
@@ -150,33 +189,32 @@ class _StatusTab extends StatelessWidget {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
+        behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? badgeColor : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? textColor : Colors.grey.shade200,
-              width: isSelected ? 2 : 1,
-            ),
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 4),
               Text(
                 '$count',
                 style: TextStyle(
+                  fontFamily: 'Figtree',
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? const Color(0xFF1A0F2E) : Colors.white,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Figtree',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? const Color(0xFF7C3AED) : Colors.white.withValues(alpha: 0.65),
                 ),
               ),
             ],
@@ -198,8 +236,6 @@ class _AppointmentCard extends StatefulWidget {
 class _AppointmentCardState extends State<_AppointmentCard> {
   bool _processing = false;
 
-  
-
   Future<void> _act(bool accept) async {
     setState(() => _processing = true);
     final vc = context.read<VetController>();
@@ -211,14 +247,10 @@ class _AppointmentCardState extends State<_AppointmentCard> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
-          accept ? '✓ Appointment accepted for ${widget.appointment.petName}' : '✗ Appointment rejected',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-          textAlign: TextAlign.center,
+          accept ? '✓ Appointment accepted' : '✗ Appointment rejected',
+          style: const TextStyle(fontFamily: 'Figtree', fontWeight: FontWeight.w600),
         ),
-        backgroundColor: accept ? AppColors.primary : Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: accept ? const Color(0xFF15803D) : const Color(0xFFB45309),
       ));
     }
   }
@@ -226,6 +258,33 @@ class _AppointmentCardState extends State<_AppointmentCard> {
   @override
   Widget build(BuildContext context) {
     final appt = widget.appointment;
+    final vc = context.read<VetController>();
+    final fallbackPet = vc.getPetById(appt.petId);
+    final imgUrl = (appt.petProfileUrl != null && appt.petProfileUrl!.isNotEmpty)
+        ? appt.petProfileUrl
+        : fallbackPet?.profileImageUrl;
+
+    Color badgeColor;
+    String badgeLabel;
+    switch (appt.status) {
+      case AppointmentStatus.pending:
+        badgeColor = const Color(0xFFB45309);
+        badgeLabel = 'Pending';
+        break;
+      case AppointmentStatus.confirmed:
+        badgeColor = const Color(0xFF534AB7);
+        badgeLabel = 'Confirmed';
+        break;
+      case AppointmentStatus.completed:
+        badgeColor = const Color(0xFF15803D);
+        badgeLabel = 'Completed';
+        break;
+      case AppointmentStatus.cancelled:
+        badgeColor = const Color(0xFF9B8CB8);
+        badgeLabel = 'Cancelled';
+        break;
+    }
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -236,142 +295,208 @@ class _AppointmentCardState extends State<_AppointmentCard> {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 4))],
+          color: const Color(0xFFF7F5FF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDE8F8)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Pet + Status
+            // Top Row
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Avatar
                 Container(
-                  width: 42, height: 42,
-                  decoration: BoxDecoration(color: AppColors.chipBg, borderRadius: BorderRadius.circular(12)),
-                  child: Center(child: Text('🐾', style: TextStyle(fontSize: 20))),
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEDE8F8),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: imgUrl != null && imgUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imgUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => const SizedBox(),
+                          errorWidget: (_, __, ___) => Center(
+                            child: Text(
+                              vc.getPetEmoji(fallbackPet?.species ?? ''),
+                              style: const TextStyle(fontSize: 24),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            vc.getPetEmoji(fallbackPet?.species ?? ''),
+                            style: const TextStyle(fontSize: 24),
+                          ),
+                        ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
+                // Info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(appt.petName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
-                      Text(appt.reason, style: TextStyle(fontSize: 12, color: Colors.grey.shade500), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(
+                        appt.petName,
+                        style: const TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1A0F2E),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 1),
+                        child: Text(
+                          appt.ownerName != null ? 'Owner: ${appt.ownerName}' : 'Unknown Owner',
+                          style: const TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 11,
+                            color: Color(0xFF9B8CB8),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 3),
+                        child: Text(
+                          appt.isVirtual ? 'Virtual Consultation' : 'In-Person Visit',
+                          style: const TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 11,
+                            color: Color(0xFFB0A4C8),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                _buildStatusPill(appt.status),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Divider(color: Colors.grey.shade100),
-            const SizedBox(height: 10),
-            // Date + Time
-            Row(
-              children: [
-                _InfoPill(icon: Icons.calendar_today_outlined, text: DateFormat('EEE, MMM d').format(appt.appointmentDate)),
-                const SizedBox(width: 10),
-                _InfoPill(icon: Icons.access_time, text: DateFormat('h:mm a').format(appt.timeSlot)),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Action Buttons (Only for Pending)
-            if (appt.status == AppointmentStatus.pending)
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _processing ? null : () => _act(false),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.red),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: Text('Reject', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 14)),
+                // Status Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    badgeLabel.toUpperCase(),
+                    style: const TextStyle(
+                      fontFamily: 'Figtree',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _processing ? null : () => _act(true),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ],
+            ),
+            // Meta Row
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.only(top: 10),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color(0xFFEDE8F8))),
+              ),
+              child: Row(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today_outlined, size: 12, color: Color(0xFF9B8CB8)),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('MMM d, yyyy').format(appt.appointmentDate),
+                        style: const TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 11,
+                          color: Color(0xFF9B8CB8),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      child: _processing
-                          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('Accept', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14)),
-                    ),
+                    ],
+                  ),
+                  const SizedBox(width: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.access_time, size: 12, color: Color(0xFF9B8CB8)),
+                      const SizedBox(width: 4),
+                      Text(
+                        DateFormat('h:mm a').format(appt.timeSlot),
+                        style: const TextStyle(
+                          fontFamily: 'Figtree',
+                          fontSize: 11,
+                          color: Color(0xFF9B8CB8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
+            ),
+            // Action Row
+            if (appt.status == AppointmentStatus.pending)
+              Container(
+                margin: const EdgeInsets.only(top: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: _processing ? null : () => _act(false),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text(
+                          'Reject',
+                          style: TextStyle(
+                            fontFamily: 'Figtree',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9B8CB8),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _processing ? null : () => _act(true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7C3AED),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 0,
+                        ),
+                        child: _processing
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : const Text(
+                                'Accept',
+                                style: TextStyle(
+                                  fontFamily: 'Figtree',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatusPill(AppointmentStatus status) {
-    Color bgColor;
-    Color textColor;
-    String label;
-
-    switch (status) {
-      case AppointmentStatus.pending:
-        bgColor = AppColors.pendingBg;
-        textColor = AppColors.pendingText;
-        label = 'Pending';
-        break;
-      case AppointmentStatus.confirmed:
-        bgColor = AppColors.confirmedBg;
-        textColor = AppColors.confirmedText;
-        label = 'Confirmed';
-        break;
-      case AppointmentStatus.completed:
-        bgColor = AppColors.completedBg;
-        textColor = AppColors.completedText;
-        label = 'Completed';
-        break;
-      case AppointmentStatus.cancelled:
-        bgColor = AppColors.cancelledBg;
-        textColor = AppColors.cancelledText;
-        label = 'Cancelled';
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
-      child: Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: textColor)),
-    );
-  }
-}
-
-class _InfoPill extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _InfoPill({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: AppColors.lightSurface, borderRadius: BorderRadius.circular(10)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: AppColors.primary),
-          const SizedBox(width: 5),
-          Text(text, style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
-        ],
       ),
     );
   }
